@@ -74,7 +74,6 @@
 ```bash
 git clone https://github.com/<YOUR_USERNAME>/PAIMANA-EWS.git
 cd PAIMANA-EWS/civicsense-v3-upgraded
-```
 
 ### 2. Install Dependencies
 ```bash
