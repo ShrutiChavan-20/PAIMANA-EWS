@@ -49,20 +49,27 @@ export default function ProjectsPage() {
   });
 
   const filteredProjects = useMemo(() => {
+    const query = searchTerm.toLowerCase().trim();
     return projects.filter(p => {
-      const matchSearch = searchTerm === '' ||
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.agency && p.agency.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (p.projectCode && p.projectCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (p.state && p.state.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchSearch = query === '' ||
+        (p.title && p.title.toLowerCase().includes(query)) ||
+        (p.agency && p.agency.toLowerCase().includes(query)) ||
+        (p.projectCode && p.projectCode.toLowerCase().includes(query)) ||
+        (p.state && p.state.toLowerCase().includes(query)) ||
+        (p.location && p.location.toLowerCase().includes(query)) ||
+        (p.contractor && p.contractor.toLowerCase().includes(query));
+
+      const matchState = selectedState === 'All States' || 
+        (p.state && p.state.toLowerCase().includes(selectedState.toLowerCase())) ||
+        (p.location && p.location.toLowerCase().includes(selectedState.toLowerCase()));
 
       const matchSector = selectedSector === 'All Sectors' || p.category === selectedSector;
       const matchStatus = selectedStatus === 'All Statuses' || p.status === selectedStatus;
       const matchMinistry = selectedMinistry === 'All Ministries' || p.ministry === selectedMinistry;
 
-      return matchSearch && matchSector && matchStatus && matchMinistry;
+      return matchSearch && matchState && matchSector && matchStatus && matchMinistry;
     });
-  }, [projects, searchTerm, selectedSector, selectedStatus, selectedMinistry]);
+  }, [projects, searchTerm, selectedState, selectedSector, selectedStatus, selectedMinistry]);
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
@@ -164,6 +171,29 @@ export default function ProjectsPage() {
           />
         </div>
 
+        {/* State Filter */}
+        <select
+          value={selectedState}
+          onChange={e => {
+            setSelectedState(e.target.value);
+            setSearchTerm('');
+          }}
+          style={{
+            padding: '10px 14px',
+            borderRadius: 12,
+            background: isDark ? 'rgba(15,23,42,0.6)' : '#ffffff',
+            border: `1px solid ${theme.border}`,
+            color: theme.textPrimary,
+            fontSize: '0.82rem',
+            outline: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          {['All States', 'Maharashtra', 'Delhi', 'Karnataka', 'Gujarat', 'Uttar Pradesh', 'Tamil Nadu', 'Telangana', 'West Bengal', 'Rajasthan', 'Multi-State'].map(st => (
+            <option key={st} value={st}>{st === 'All States' ? '📍 All States / Cities' : `📍 ${st}`}</option>
+          ))}
+        </select>
+
         {/* Sector Filter */}
         <select
           value={selectedSector}
@@ -224,6 +254,49 @@ export default function ProjectsPage() {
         <div style={{ fontSize: '0.78rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>
           Showing {filteredProjects.length} projects
         </div>
+      </div>
+
+      {/* Quick City Filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20, alignItems: 'center' }}>
+        <span style={{ fontSize: '0.72rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace", marginRight: 4 }}>
+          City Shortcuts:
+        </span>
+        {[
+          { label: 'All Projects', value: '' },
+          { label: '📍 Pune', value: 'Pune' },
+          { label: '📍 Mumbai', value: 'Mumbai' },
+          { label: '📍 Bengaluru', value: 'Bengaluru' },
+          { label: '📍 Delhi NCR', value: 'Delhi' },
+          { label: '📍 Hyderabad', value: 'Hyderabad' },
+          { label: '📍 Ahmedabad', value: 'Ahmedabad' },
+          { label: '📍 Nagpur', value: 'Nagpur' },
+          { label: '📍 Chennai', value: 'Chennai' },
+        ].map(city => {
+          const isActive = (city.value === '' && searchTerm === '' && selectedState === 'All States') || (city.value !== '' && searchTerm.toLowerCase() === city.value.toLowerCase());
+          return (
+            <button
+              key={city.label}
+              onClick={() => {
+                setSearchTerm(city.value);
+                setSelectedState('All States');
+              }}
+              style={{
+                padding: '4px 11px',
+                borderRadius: 20,
+                fontSize: '0.73rem',
+                fontWeight: 600,
+                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                border: isActive ? '1px solid #3b82f6' : `1px solid ${theme.border}`,
+                background: isActive ? 'rgba(59,130,246,0.2)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                color: isActive ? '#60a5fa' : theme.textMuted,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {city.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Project Grid */}
