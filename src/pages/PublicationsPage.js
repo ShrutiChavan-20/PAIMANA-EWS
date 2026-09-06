@@ -7,32 +7,232 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../ThemeContext';
 import { InfraCard, InfraChip } from '../components/InfraCard';
 import GlowButton from '../components/GlowButton';
-import { FileText, Download, ExternalLink, BarChart2, TrendingUp, Calendar, BookOpen, Archive, ChevronRight } from 'lucide-react';
+import { FileText, Download, Archive, ChevronRight, BookOpen, TrendingUp } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+
+// Helper function to generate and download real PDF report documents
+const downloadReportPDF = (reportTitle, month, focusText = '', toastCallback = null) => {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // 1. Header Banner
+  doc.setFillColor(15, 23, 42); // #0f172a Deep Slate
+  doc.rect(0, 0, pageWidth, 42, 'F');
+
+  doc.setTextColor(56, 189, 248); // #38bdf8 Light Blue
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GOVERNMENT OF INDIA · MINISTRY OF STATISTICS & PROGRAMME IMPLEMENTATION', 14, 12);
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.text('PAIMANA-EWS OFFICIAL MONITORING REPORT', 14, 22);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(203, 213, 225); // #cbd5e1
+  doc.text('Infrastructure & Project Monitoring Division (IPMD) · OCMS Portal', 14, 30);
+  doc.text(`Classification: OFFICIAL RELEASE · ${month.toUpperCase()}`, 14, 36);
+
+  // Accent Bar
+  doc.setFillColor(14, 165, 233); // #0ea5e9
+  doc.rect(0, 42, pageWidth, 2, 'F');
+
+  let y = 52;
+
+  // 2. Report Overview Box
+  doc.setFillColor(248, 250, 252); // #f8fafc
+  doc.setDrawColor(226, 232, 240); // #e2e8f0
+  doc.roundedRect(14, y, pageWidth - 28, 26, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`${reportTitle} — ${month}`, 18, y + 8);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Release Date: ${new Date().toLocaleDateString('en-IN', { dateStyle: 'full' })}`, 18, y + 15);
+  doc.text(`Archive Reference: PAIMANA-EWS-REP-${month.replace(/\s+/g, '-').toUpperCase()}`, 18, y + 21);
+
+  y += 34;
+
+  // 3. Executive Portfolio Summary
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('1. EXECUTIVE PORTFOLIO SUMMARY', 14, y);
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(14, 165, 233);
+  doc.line(14, y + 2, pageWidth - 14, y + 2);
+
+  y += 8;
+
+  const stats = [
+    ['Total Monitored Projects (>= Rs. 150 Cr)', '1,775 Central Sector Projects'],
+    ['Total Sanctioned Portfolio Cost', 'Rs. 37,11,480 Crore'],
+    ['Total Cumulative Cost Escalation', 'Rs. 3,40,290 Crore (+9.17%)'],
+    ['Schedule Delay Rate', '62.0% (1,102 delayed projects)'],
+    ['Critical Risk Category (Red Alert)', '635 projects requiring triage'],
+  ];
+
+  doc.setFontSize(9);
+  stats.forEach(([label, val]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(51, 65, 85);
+    doc.text(`• ${label}:`, 18, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    doc.text(val, 110, y);
+    y += 6;
+  });
+
+  y += 4;
+
+  // 4. Sector-Wise Performance Breakdown Table
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('2. SECTOR-WISE PERFORMANCE BREAKDOWN', 14, y);
+  doc.line(14, y + 2, pageWidth - 14, y + 2);
+
+  y += 8;
+
+  // Table Header
+  doc.setFillColor(30, 41, 59);
+  doc.rect(14, y, pageWidth - 28, 7, 'F');
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('Sector Name', 18, y + 5);
+  doc.text('Total Projects', 80, y + 5);
+  doc.text('On-Track', 115, y + 5);
+  doc.text('Delayed', 145, y + 5);
+  doc.text('Avg Delay', 175, y + 5);
+
+  y += 7;
+
+  const rows = [
+    ['Roads & Highways', '993', '373', '620', '20.8 Months'],
+    ['Railways', '192', '52', '140', '42.4 Months'],
+    ['Power & Energy', '98', '40', '58', '13.6 Months'],
+    ['Petroleum & Gas', '103', '31', '72', '15.4 Months'],
+    ['Coal', '115', '70', '45', '8.2 Months'],
+    ['Urban Transport', '63', '25', '38', '28.5 Months'],
+  ];
+
+  rows.forEach((row, idx) => {
+    doc.setFillColor(idx % 2 === 0 ? 241 : 255, idx % 2 === 0 ? 245 : 255, idx % 2 === 0 ? 249 : 255);
+    doc.rect(14, y, pageWidth - 28, 6.5, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(30, 41, 59);
+    doc.text(row[0], 18, y + 4.5);
+    doc.text(row[1], 80, y + 4.5);
+    doc.setTextColor(16, 185, 129); // Green
+    doc.text(row[2], 115, y + 4.5);
+    doc.setTextColor(239, 68, 68); // Red
+    doc.text(row[3], 145, y + 4.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(row[4], 175, y + 4.5);
+    y += 6.5;
+  });
+
+  y += 8;
+
+  // 5. Key Highlights
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`3. MONTHLY KEY HIGHLIGHTS & FINDINGS (${month.toUpperCase()})`, 14, y);
+  doc.line(14, y + 2, pageWidth - 14, y + 2);
+
+  y += 8;
+
+  doc.setFillColor(254, 243, 199); // Light amber
+  doc.setDrawColor(251, 191, 36);
+  doc.roundedRect(14, y, pageWidth - 28, 16, 2, 2, 'FD');
+
+  const highlightText = focusText || 'Land acquisition bottlenecks affect 34% of delayed projects. Decoupling gap between financial expenditure and physical progress identified across priority corridors.';
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(120, 53, 15);
+  const splitText = doc.splitTextToSize(highlightText, pageWidth - 36);
+  doc.text(splitText, 18, y + 6);
+
+  y += 22;
+
+  // 6. Recommended Interventions
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('4. RECOMMENDED INTERVENTIONS & EWS ALERTS', 14, y);
+  doc.line(14, y + 2, pageWidth - 14, y + 2);
+
+  y += 8;
+
+  const recommendations = [
+    '1. Convene Sectoral Project Review Committees (SPRC) for 635 Critical Red projects.',
+    '2. Fast-track Stage-II Forest Clearances for Power and Railway expansion corridors.',
+    '3. Perform mandatory Contractor Trust Score audits before disbursing Q3 milestone funds.',
+  ];
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(51, 65, 85);
+  recommendations.forEach(rec => {
+    doc.text(rec, 18, y);
+    y += 5.5;
+  });
+
+  // Footer
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 282, pageWidth, 15, 'F');
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(148, 163, 184);
+  doc.text('PAIMANA-EWS · Ministry of Statistics & Programme Implementation · Government of India', 14, 289);
+  doc.text('Page 1 of 1', pageWidth - 25, 289);
+
+  // Save PDF
+  const filename = `PAIMANA_EWS_${reportTitle.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}.pdf`;
+  doc.save(filename);
+
+  if (toastCallback) {
+    toastCallback(`✓ Downloaded ${reportTitle} (${month})`);
+  }
+};
 
 // ── Flash Report archive (Project Monitoring) ──────────────────────────────
 const FLASH_REPORTS = [
-  { month: 'July 2026', label: 'New', size: '6.1 MB', projects: 1775, highlight: 'Cost escalation touches ₹3.40 Lakh Cr. 635 projects in Red category.', file: 'FlashReport_July_2026 (2).pdf' },
+  { month: 'July 2026', label: 'New', size: '6.1 MB', projects: 1775, highlight: 'Cost escalation touches ₹3.40 Lakh Cr. 635 projects in Red category.' },
   { month: 'June 2026', size: '5.8 MB', projects: 1769, highlight: '1,102 projects delayed. Railways avg delay at 42.4 months.' },
   { month: 'May 2026', size: '5.7 MB', projects: 1762, highlight: 'MoRTH completes NH-48 phase widening. Petroleum sector on track.' },
   { month: 'April 2026', size: '5.6 MB', projects: 1754, highlight: 'DFCCIL Western DFC at 96% physical completion.' },
-  { month: 'March 2026', label: 'Published', size: '5.5 MB', projects: 1748, highlight: 'Mumbai-Ahmedabad HSRC reports 62% physical, 84% financial progress.', file: 'FlashReport_March_2026.pdf' },
+  { month: 'March 2026', label: 'Published', size: '5.5 MB', projects: 1748, highlight: 'Mumbai-Ahmedabad HSRC reports 62% physical, 84% financial progress.' },
   { month: 'February 2026', size: '5.4 MB', projects: 1741, highlight: 'Power sector hydro projects cleared Stage-II forest diversion.' },
   { month: 'January 2026', size: '5.3 MB', projects: 1737, highlight: 'Land acquisition bottleneck affects 34% of delayed projects.' },
   { month: 'December 2025', size: '5.2 MB', projects: 1729, highlight: 'Contractor liquidity crunch impacts 18% of active projects.' },
   { month: 'November 2025', size: '5.1 MB', projects: 1721, highlight: 'Coal sector shows negative escalation (-₹2,026 Cr) — scope optimization.' },
   { month: 'October 2025', size: '5.0 MB', projects: 1715, highlight: 'Defence infra projects: 27 critical. Avg delay 54.2 months.' },
-  { month: 'September 2025', size: '4.9 MB', projects: 1708 },
-  { month: 'August 2025', size: '4.8 MB', projects: 1702 },
+  { month: 'September 2025', size: '4.9 MB', projects: 1708, highlight: 'Port connectivity projects report 78% physical progress in Western zone.' },
+  { month: 'August 2025', size: '4.8 MB', projects: 1702, highlight: 'Monsoon season impact: 142 highway projects report schedule slippage.' },
 ];
 
 // ── Review Report archive (Performance Monitoring) ─────────────────────────
 const REVIEW_REPORTS = [
-  { month: 'July 2026', label: 'New', size: '6.4 MB', focus: 'Sector-wise Physical Progress vs Financial Expenditure Decoupling Analysis', file: 'FlashReport_July_2026 (1).pdf' },
-  { month: 'January 2026', label: 'Published', size: '5.9 MB', focus: 'Ministry Rankings — Escalation & Delay Benchmarking Report (Q3 FY2026)', file: 'Review Report Jan26.pdf' },
+  { month: 'July 2026', label: 'New', size: '6.4 MB', focus: 'Sector-wise Physical Progress vs Financial Expenditure Decoupling Analysis' },
+  { month: 'June 2026', size: '6.2 MB', focus: 'Q1 FY2027 Infrastructure Budget Allocation & Disbursement Efficiency Audit' },
+  { month: 'May 2026', size: '6.0 MB', focus: 'Contractor Trust Index Scorecard — Top 50 Infrastructure Executing Agencies' },
+  { month: 'April 2026', size: '5.8 MB', focus: 'State-Level Land Acquisition & Utility Shifting Speed Index (Q4 FY2026)' },
+  { month: 'March 2026', size: '5.7 MB', focus: 'Annual Infrastructure Completion Rate & Cost Efficiency Review FY2025-26' },
+  { month: 'February 2026', size: '5.5 MB', focus: 'Railway Electrification & Dedicated Freight Corridor Performance Audit' },
+  { month: 'January 2026', label: 'Published', size: '5.9 MB', focus: 'Ministry Rankings — Escalation & Delay Benchmarking Report (Q3 FY2026)' },
   { month: 'December 2025', size: '5.6 MB', focus: 'Annual Infrastructure Completion Rate & Cost Efficiency Review FY2025' },
+  { month: 'November 2025', size: '5.4 MB', focus: 'Thermal & Renewable Energy Generation Expansion Milestone Assessment' },
+  { month: 'October 2025', size: '5.3 MB', focus: 'National Waterways & Port Infrastructure Acceleration Evaluation' },
   { month: 'September 2025', size: '5.4 MB', focus: 'Mid-Year Performance Monitoring — Physical vs Financial Convergence' },
-  { month: 'June 2025', size: '5.1 MB', focus: 'Q1 FY2025 — Early Warning System Activation Report (253 Red Projects)' },
-  { month: 'March 2025', size: '4.8 MB', focus: 'Annual Review FY2024-25 — 17 Ministry Accountability Scorecard' },
+  { month: 'August 2025', size: '5.1 MB', focus: 'Q2 Monsoon Resiliency & Critical Project Risk Mitigation Brief' },
 ];
 
 const SECTOR_STATS = [
@@ -48,6 +248,9 @@ export default function PublicationsPage() {
   const { theme, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('project'); // 'project' | 'performance'
   const [expandedMonth, setExpandedMonth] = useState(null);
+  const [toast, setToast] = useState('');
+
+  const showToast = msg => { setToast(msg); setTimeout(()=>setToast(''), 3500); };
 
   const tabStyle = (t) => ({
     padding: '8px 20px',
@@ -66,7 +269,17 @@ export default function PublicationsPage() {
   });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} style={{ padding: '1.5rem', maxWidth: 1200, margin: '0 auto' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} style={{ padding: '1.5rem', maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
+
+      {/* Toast alert */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            style={{ position: 'fixed', top: 20, right: 20, background: '#10b981', color: '#fff', padding: '10px 18px', borderRadius: 10, fontFamily: "'JetBrains Mono',monospace", fontSize: '0.78rem', fontWeight: 700, zIndex: 1000, boxShadow: '0 8px 24px rgba(16,185,129,0.35)' }}>
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '1.5rem' }}>
@@ -104,7 +317,7 @@ export default function PublicationsPage() {
                   <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', color: theme.textPrimary }}>Monthly Flash Report — July 2026</span>
                   <InfraChip label="NEW" color="#34d399" dot />
                 </div>
-                <GlowButton variant="primary" size="sm" icon={<Download size={12} />}>
+                <GlowButton variant="primary" size="sm" icon={<Download size={12} />} onClick={() => downloadReportPDF('Monthly Flash Report', 'July 2026', 'Cost escalation touches ₹3.40 Lakh Cr. 635 projects in Red category.', showToast)}>
                   Download PDF
                 </GlowButton>
               </div>
@@ -178,7 +391,7 @@ export default function PublicationsPage() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <GlowButton variant="glass" size="sm" icon={<Download size={11} />}>PDF</GlowButton>
+                        <GlowButton variant="glass" size="sm" icon={<Download size={11} />} onClick={(e) => { e.stopPropagation(); downloadReportPDF('Monthly Flash Report', r.month, r.highlight, showToast); }}>PDF</GlowButton>
                         <ChevronRight size={13} color={theme.textMuted} style={{ transform: expandedMonth === r.month ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
                       </div>
                     </div>
@@ -205,7 +418,7 @@ export default function PublicationsPage() {
                   <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', color: theme.textPrimary }}>Monthly Review Report — July 2026</span>
                   <InfraChip label="NEW" color="#34d399" dot />
                 </div>
-                <GlowButton variant="primary" size="sm" icon={<Download size={12} />}>
+                <GlowButton variant="primary" size="sm" icon={<Download size={12} />} onClick={() => downloadReportPDF('Monthly Review Report', 'July 2026', 'Sector-wise Physical Progress vs Financial Expenditure Decoupling Analysis — 17 Ministries benchmarked', showToast)}>
                   Download PDF
                 </GlowButton>
               </div>
@@ -269,7 +482,7 @@ export default function PublicationsPage() {
                       <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', color: theme.textMuted, marginTop: 1 }}>Performance Monitoring · {r.size}</div>
                       {r.focus && <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: '0.68rem', color: theme.textMuted, marginTop: 2 }}>📌 {r.focus}</div>}
                     </div>
-                    <GlowButton variant="glass" size="sm" icon={<Download size={11} />}>PDF</GlowButton>
+                    <GlowButton variant="glass" size="sm" icon={<Download size={11} />} onClick={() => downloadReportPDF('Monthly Review Report', r.month, r.focus, showToast)}>PDF</GlowButton>
                   </motion.div>
                 ))}
               </div>
@@ -280,3 +493,4 @@ export default function PublicationsPage() {
     </motion.div>
   );
 }
+

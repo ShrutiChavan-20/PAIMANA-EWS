@@ -20,8 +20,6 @@ const fundItems = [
 export default function AdminPage() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
-  const issues = [];
-  const updateIssue = () => {};
   const { projects, updateProject } = useProjects();
   const [activeTab, setActiveTab] = useState('overview');
   const [toast, setToast] = useState('');
@@ -53,12 +51,6 @@ export default function AdminPage() {
 
   const showToast = msg => { setToast(msg); setTimeout(()=>setToast(''),3500); };
   const isAdmin = user?.role === 'gov-admin';
-  const openIssues = issues.filter(i=>i.status==='open');
-  const inReview = issues.filter(i=>i.status==='in-review');
-  const resolved = issues.filter(i=>i.status==='resolved');
-
-  const handleResolve = (id) => { updateIssue(id, { status: 'resolved' }); showToast('✓ Issue marked as resolved — citizen notified'); };
-  const handleReview = (id) => { updateIssue(id, { status: 'in-review' }); showToast('✓ Issue moved to In Review'); };
 
   const openUpdate = (p) => { setEditProject(p); setEditStatus(p.status); setEditProgress(p.progress); setEditSpent(p.spent || ''); };
   const saveUpdate = () => {
@@ -94,21 +86,20 @@ export default function AdminPage() {
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={S.header}>
         <div>
           <h1 style={S.h1}>Government Portal</h1>
-          <p style={S.sub}>Manage projects, review citizen issues & track fund utilization</p>
+          <p style={S.sub}>Manage infrastructure projects, contractor scores & fund tracking</p>
         </div>
         <div style={S.adminBadge}>🏛 PMC Admin · Pune</div>
       </motion.div>
       
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', background: isDark ? 'rgba(15,22,41,0.4)' : '#f2f3f7', padding: 4, borderRadius: 12, border: `1px solid ${theme.border}` }}>
-        {[['overview','Overview'],['issues','Issue Review'],['funds','Fund Tracking'],['projects','Manage Projects'],['contractors','Contractor Scores']].map(([id,label])=>(
+        {[['overview','Overview'],['funds','Fund Tracking'],['projects','Manage Projects'],['contractors','Contractor Scores']].map(([id,label])=>(
           <button key={id} onClick={()=>setActiveTab(id)}
             style={{ padding: '8px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: activeTab===id ? 700 : 500, fontSize: '0.82rem', position: 'relative', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
               background: activeTab===id ? isDark ? 'rgba(59,130,246,0.15)' : 'white' : 'transparent',
               color: activeTab===id ? isDark ? '#60a5fa' : '#6366f1' : theme.textMuted,
               boxShadow: activeTab===id ? isDark ? '0 0 15px rgba(59,130,246,0.08)' : '0 1px 8px rgba(0,0,0,0.08)' : 'none',
             }}>
-            {id==='issues' && openIssues.length>0 && (<span style={{ background: '#f43f5e', color: 'white', fontSize: '0.6rem', fontWeight: 700, padding: '1px 5px', borderRadius: 10 }}>{openIssues.length}</span>)}
             {label}
           </button>
         ))}
@@ -119,7 +110,12 @@ export default function AdminPage() {
           {activeTab==='overview' && (
             <div>
               <div style={S.kpiGrid}>
-                {[['Total Projects',projects.length,'#3b82f6'],['Open Issues',openIssues.length,'#f43f5e'],['In Review',inReview.length,'#f59e0b'],['Resolved',resolved.length,'#10b981']].map(([l,v,c],idx)=>(
+                {[
+                  ['Total Projects', projects.length, '#3b82f6'],
+                  ['On Track', projects.filter(p => p.status === 'on-track').length, '#10b981'],
+                  ['Delayed', projects.filter(p => p.status === 'delayed').length, '#f59e0b'],
+                  ['Critical Risk', projects.filter(p => p.status === 'critical').length, '#f43f5e']
+                ].map(([l,v,c],idx)=>(
                   <motion.div key={l} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + idx * 0.1 }}>
                     <FloatingCard style={{...S.kpiCard,borderTop:`2px solid ${c}`}} glowColor={`${c}20`}>
                       <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'0.6rem',color:'#64748b'}}>{l}</span>
@@ -130,71 +126,6 @@ export default function AdminPage() {
                   </motion.div>
                 ))}
               </div>
-              <div style={S.sectionTitle}>Recent Citizen Reports</div>
-              <StaggerContainer style={S.activityList}>
-                {issues.slice(0,6).map((issue,i)=>(
-                  <StaggerItem key={i}>
-                    <motion.div whileHover={{ backgroundColor: 'rgba(99,140,255,0.05)' }} style={S.activityItem}>
-                      <div style={{...S.actDot,background:issue.severity==='high'?'#f43f5e':issue.severity==='medium'?'#f59e0b':'#10b981',boxShadow:`0 0 6px ${issue.severity==='high'?'#f43f5e':issue.severity==='medium'?'#f59e0b':'#10b981'}40`}}/>
-                      <span style={{ fontSize: '0.7rem', color: theme.textMuted, minWidth: 90, fontFamily: "'JetBrains Mono',monospace" }}>{issue.date}</span>
-                      <span style={{ fontSize: '0.82rem', color: theme.textPrimary, flex: 1 }}>{issue.title}</span>
-                      <StatusBadge status={issue.status}/>
-                      <span style={{fontSize:'0.7rem',color:'#64748b',fontFamily:"'JetBrains Mono',monospace"}}>▲{issue.reports}</span>
-                    </motion.div>
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
-            </div>
-          )}
-
-          {activeTab==='issues' && (
-            <div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-                <h2 style={S.sectionTitle}>All Citizen Reports ({issues.length})</h2>
-                <div style={{display:'flex',gap:8}}>
-                  {[`🔴 Open: ${openIssues.length}`,`🟡 Review: ${inReview.length}`,`🟢 Resolved: ${resolved.length}`].map(t=>(
-                    <span key={t} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'0.65rem',color:'#64748b',background:'rgba(15,22,41,0.4)',border:'1px solid rgba(99,140,255,0.08)',padding:'4px 9px',borderRadius:6}}>{t}</span>
-                  ))}
-                </div>
-              </div>
-              <StaggerContainer style={S.issueGrid}>
-                {issues.map((issue)=>{
-                  const proj = projects.find(p=>p.id===issue.projectId);
-                  const sevColor = issue.severity==='high'?'#f43f5e':issue.severity==='medium'?'#f59e0b':'#10b981';
-                  return (
-                    <StaggerItem key={issue.id}>
-                      <FloatingCard style={S.issueCard} glowColor={`${sevColor}15`}>
-                        <div style={S.issueCardTop}>
-                          <div style={{...S.sevBadge,background:`${sevColor}15`,color:sevColor,border:`1px solid ${sevColor}25`}}>{issue.severity.toUpperCase()}</div>
-                          <StatusBadge status={issue.status}/>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'0.65rem',color:'#60a5fa',marginLeft:'auto'}}>▲{issue.reports}</span>
-                        </div>
-                        <h4 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.88rem', color: theme.textPrimary, marginBottom: 4 }}>{issue.title}</h4>
-                        <p style={S.issueDesc}>{issue.description}</p>
-                        <div style={S.issueMeta}>
-                          <span>📍 {proj?.location}</span>
-                          <span>👤 {issue.reporter}</span>
-                          <span>📅 {issue.date}</span>
-                        </div>
-                        {issue.status !== 'resolved' && (
-                          <div style={{display:'flex',gap:8,marginTop:10}}>
-                            {issue.status === 'open' && (
-                              <GlowButton onClick={()=>handleReview(issue.id)} variant="secondary" size="sm" icon={<Eye size={12}/>} style={{ flex: 1 }}>Review</GlowButton>
-                            )}
-                            <GlowButton onClick={()=>handleResolve(issue.id)} variant="success" size="sm" icon={<CheckCircle size={12}/>} style={{ flex: 1 }}>Resolve</GlowButton>
-                          </div>
-                        )}
-                        {issue.status === 'resolved' && (
-                          <div style={{marginTop:10,fontSize:'0.72rem',color:'#34d399',display:'flex',alignItems:'center',gap:4}}>
-                            <CheckCircle size={12}/> Resolved · Citizen notified
-                          </div>
-                        )}
-                        <BeforeAfterTimeline targetId={issue.id} type="issue" theme={theme} isDark={isDark} status={issue.status} />
-                      </FloatingCard>
-                    </StaggerItem>
-                  );
-                })}
-              </StaggerContainer>
             </div>
           )}
 
@@ -248,7 +179,6 @@ export default function AdminPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1rem' }}>
                 {projects.map(p => {
-                  const openCount = issues.filter(i => i.projectId === p.id && i.status === 'open').length;
                   const tc = p.trustScore >= 75 ? '#34d399' : p.trustScore >= 50 ? '#fbbf24' : '#fb7185';
                   const sc = statusColor[p.status];
                   const budgetNum = parseFloat((p.budget || '0').replace(/[^\d.]/g,''));
@@ -326,11 +256,6 @@ export default function AdminPage() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <StatusBadge status={p.status} />
                           <div style={{ display: 'flex', gap: 6 }}>
-                            {openCount > 0 && (
-                              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#fb7185', fontWeight: 700, background: 'rgba(244,63,94,0.1)', padding: '3px 7px', borderRadius: 6, border: '1px solid rgba(244,63,94,0.2)' }}>
-                                ⚠ {openCount} issues
-                              </span>
-                            )}
                             <button onClick={e => { e.stopPropagation(); openUpdate(p); }}
                               style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, background: isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399', cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', fontWeight: 600 }}>
                               <RefreshCw size={11} /> Update
@@ -557,10 +482,6 @@ export default function AdminPage() {
                           </button>
                         </div>
                       </div>
-
-                      {/* Before/After — status-gated (upload only when Resolved) */}
-                      <BeforeAfterTimeline targetId={vp.id} status={vp.status} />
-
                     </div>
                   </motion.div>
                 </motion.div>

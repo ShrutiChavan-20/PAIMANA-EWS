@@ -90,7 +90,6 @@ const TABS = [
   { id: 'delay', label: 'Time Overrun Model', icon: Clock, color: YELLOW, badge: 'Outcome b' },
   { id: 'risk', label: 'Risk Scoring Framework', icon: Shield, color: PURPLE, badge: 'Outcome c' },
   { id: 'warning', label: 'Early Warning Alert System', icon: AlertTriangle, color: '#f43f5e', badge: 'Outcome d' },
-  { id: 'evaluation', label: 'AI vs Stats & CUF Analysis', icon: Brain, color: '#06b6d4', badge: 'Dims b & c' },
 ];
 
 export default function PredictiveModelPage() {
@@ -301,16 +300,6 @@ export default function PredictiveModelPage() {
                   </div>
                 )}
               </InfraCard>
-
-              {/* SHAP Feature Importance */}
-              <InfraCard accentColor={PURPLE} style={{ padding: '1.2rem' }}>
-                <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.85rem', color: theme.textPrimary, marginBottom: '0.75rem' }}>
-                  SHAP Feature Importance — Cost Escalation Drivers
-                </h3>
-                <div style={{ height: 170 }}>
-                  <Bar data={featureBarData} options={{ responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false }, tooltip: tooltipStyle }, scales: { x: { grid: { color: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)' }, ticks: { color: theme.textMuted, font: { family: "'JetBrains Mono',monospace", size: 9 } } }, y: { grid: { display: false }, ticks: { color: theme.textMuted, font: { family: "'JetBrains Mono',monospace", size: 9 } } } } }} />
-                </div>
-              </InfraCard>
             </div>
           </motion.div>
         )}
@@ -393,14 +382,6 @@ export default function PredictiveModelPage() {
                     <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.68rem' }}>Configure parameters and click "Predict Schedule"</div>
                   </div>
                 )}
-              </InfraCard>
-
-              {/* Delay Driver Radar */}
-              <InfraCard accentColor={CYAN} style={{ padding: '1.2rem' }}>
-                <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.85rem', color: theme.textPrimary, marginBottom: '0.75rem' }}>SHAP Delay Driver Radar</h3>
-                <div style={{ height: 190 }}>
-                  <Radar data={radarData} options={{ responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }, ticks: { display: false }, pointLabels: { font: { family: "'JetBrains Mono',monospace", size: 7 }, color: theme.textMuted }, min: 0, max: 40 } }, plugins: { legend: { display: true, position: 'bottom', labels: { color: theme.textMuted, font: { family: "'JetBrains Mono',monospace", size: 9 }, padding: 8, boxWidth: 8 } }, tooltip: tooltipStyle } }} />
-                </div>
               </InfraCard>
             </div>
           </motion.div>
@@ -558,189 +539,6 @@ export default function PredictiveModelPage() {
         )}
 
         {/* ─── Tab 5: AI vs Stats & CUF Assessment (Technical Dimensions b & c) ─── */}
-        {activeTab === 'evaluation' && (
-          <motion.div key="evaluation" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
-            
-            {/* Header Banner & Benchmark Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <InfraChip label="INTERACTIVE TECHNICAL BENCHMARK" color="#06b6d4" dot />
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: theme.textMuted }}>MoSPI Hackathon Technical Dimensions (b) & (c)</span>
-                </div>
-                <h2 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1.25rem', color: theme.textPrimary, margin: '6px 0 2px' }}>
-                  AI/ML vs Conventional Statistics & CUF Variable Attribution
-                </h2>
-                <p style={{ color: theme.textMuted, fontSize: '0.78rem', margin: 0 }}>
-                  Evidence-based assessment demonstrating why modern gradient boosting outperforms classical regression on PAIMANA's 20-year database.
-                </p>
-              </div>
-
-              {/* Interactive Evaluation Benchmark Trigger */}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: isDark ? 'rgba(15,23,42,0.6)' : 'rgba(241,245,249,0.8)', padding: '6px 10px', borderRadius: 12, border: `1px solid ${theme.border}` }}>
-                <select value={evalDataset} onChange={e => setEvalDataset(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', color: theme.textPrimary, fontFamily: "'JetBrains Mono',monospace", fontSize: '0.75rem', outline: 'none', cursor: 'pointer' }}>
-                  <option value="1775" style={{ background: isDark ? '#0f172a' : '#fff' }}>Dataset: 1,775 Full Portfolio</option>
-                  <option value="1000" style={{ background: isDark ? '#0f172a' : '#fff' }}>Dataset: 1,000 Key Projects</option>
-                  <option value="500" style={{ background: isDark ? '#0f172a' : '#fff' }}>Dataset: 500 High-Value</option>
-                </select>
-                <GlowButton variant="primary" size="sm" icon={isEvalRunning ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={13} />} onClick={handleRunEvaluation}>
-                  {isEvalRunning ? 'Running Benchmark...' : 'Run Comparative AI Benchmark'}
-                </GlowButton>
-              </div>
-            </div>
-
-            {/* Grid for Dimensions b & c */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '1.2rem', marginBottom: '1.2rem' }}>
-              
-              {/* Dimension b: Statistical vs AI/ML Benchmark Table */}
-              <InfraCard accentColor="#0ea5e9" style={{ padding: '1.2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <div>
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.9rem', color: theme.textPrimary, margin: 0 }}>
-                      Dimension (b): AI/ML vs Statistical Methods
-                    </h3>
-                    <div style={{ fontSize: '0.62rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>
-                      Evaluated on {evalDataset === '1775' ? '1,775 MoSPI Projects' : evalDataset === '1000' ? '1,000 Key Sector Projects' : '500 Mega-Infrastructure Projects'} (Run #{evalRunCount})
-                    </div>
-                  </div>
-                  <span style={{ background: 'rgba(14,165,233,0.12)', color: '#0ea5e9', border: '1px solid rgba(14,165,233,0.25)', borderRadius: 6, padding: '2px 8px', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', fontWeight: 700 }}>
-                    XGBoost Top Performer
-                  </span>
-                </div>
-
-                <div style={{ overflowX: 'auto', opacity: isEvalRunning ? 0.4 : 1, transition: 'opacity 0.2s' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
-                    <thead>
-                      <tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}` }}>
-                        <th style={{ padding: '6px 8px', textAlign: 'left', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>Model Class</th>
-                        <th style={{ padding: '6px 8px', textAlign: 'left', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>R² Score</th>
-                        <th style={{ padding: '6px 8px', textAlign: 'left', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>RMSE (₹ Cr)</th>
-                        <th style={{ padding: '6px 8px', textAlign: 'left', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>MAE</th>
-                        <th style={{ padding: '6px 8px', textAlign: 'left', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>Lead Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { name: 'Linear Regression (OLS)', type: 'Statistical', r2: (0.58 + (activeLift * 0.003)).toFixed(2), rmse: `₹${Math.round(842 - activeLift * 5)} Cr`, mae: `₹${Math.round(512 - activeLift * 3)} Cr`, lead: '3.2 mo', best: false },
-                        { name: 'ARIMA Time-Series', type: 'Statistical', r2: (0.64 + (activeLift * 0.003)).toFixed(2), rmse: `₹${Math.round(710 - activeLift * 5)} Cr`, mae: `₹${Math.round(425 - activeLift * 3)} Cr`, lead: '4.1 mo', best: false },
-                        { name: 'Random Forest Regressor', type: 'ML Ensemble', r2: (0.81 + (activeLift * 0.002)).toFixed(2), rmse: `₹${Math.round(420 - activeLift * 4)} Cr`, mae: `₹${Math.round(240 - activeLift * 2)} Cr`, lead: '7.8 mo', best: false },
-                        { name: 'XGBoost / LightGBM', type: 'Gradient Boosted', r2: Math.min(0.96, (0.89 + (activeLift * 0.002)).toFixed(2)), rmse: `₹${Math.round(295 - activeLift * 3)} Cr`, mae: `₹${Math.round(165 - activeLift * 2)} Cr`, lead: '9.4 mo', best: true },
-                        { name: 'MLP / LSTM Neural Net', type: 'Deep Learning', r2: (0.87 + (activeLift * 0.002)).toFixed(2), rmse: `₹${Math.round(318 - activeLift * 3)} Cr`, mae: `₹${Math.round(180 - activeLift * 2)} Cr`, lead: '8.9 mo', best: false },
-                      ].map((m, idx) => (
-                        <tr key={idx} style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'}`, background: m.best ? (isDark ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)') : 'transparent' }}>
-                          <td style={{ padding: '7px 8px', fontWeight: 600, color: theme.textPrimary }}>
-                            {m.name}
-                            {m.best && <span style={{ marginLeft: 5, fontSize: '0.55rem', color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '1px 5px', borderRadius: 4 }}>RECOMMENDED</span>}
-                          </td>
-                          <td style={{ padding: '7px 8px', fontFamily: "'JetBrains Mono',monospace", color: m.best ? '#10b981' : theme.textPrimary, fontWeight: 700 }}>{m.r2}</td>
-                          <td style={{ padding: '7px 8px', fontFamily: "'JetBrains Mono',monospace", color: theme.textMuted }}>{m.rmse}</td>
-                          <td style={{ padding: '7px 8px', fontFamily: "'JetBrains Mono',monospace", color: theme.textMuted }}>{m.mae}</td>
-                          <td style={{ padding: '7px 8px', fontFamily: "'JetBrains Mono',monospace", color: m.best ? '#10b981' : '#3b82f6', fontWeight: 600 }}>{m.lead}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div style={{ marginTop: '0.85rem', padding: '8px 12px', background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)', borderRadius: 8, border: `1px solid ${theme.border}`, fontSize: '0.68rem', color: theme.textMuted, lineHeight: 1.5 }}>
-                  💡 <strong>Key Technical Finding:</strong> Gradient Boosted Decision Trees (XGBoost) capture complex non-linear interaction terms between <em>Land Acquisition Disputes</em> and <em>Contractor Liquidity Crunch</em>, providing a <strong>+31% R² accuracy gain</strong> and <strong>+5.3 months earlier alert lead time</strong> over standard linear models.
-                </div>
-              </InfraCard>
-
-              {/* Dimension c: CUF vs Additional Variables Analysis */}
-              <InfraCard accentColor="#8b5cf6" style={{ padding: '1.2rem' }}>
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.9rem', color: theme.textPrimary, margin: 0 }}>
-                    Dimension (c): CUF Variable Attribution
-                  </h3>
-                  <div style={{ fontSize: '0.62rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>
-                    Current CUF fields vs External Feature Expansion
-                  </div>
-                </div>
-
-                {/* Section A: Current CUF Fields */}
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#8b5cf6', fontWeight: 700 }}>1. Current CUF Fields (68% of Variance)</span>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#8b5cf6' }}>Baseline</span>
-                  </div>
-                  {[
-                    { label: 'Spend vs Physical Decoupling Gap', weight: 22 },
-                    { label: 'Sanctioned vs Anticipated Cost', weight: 18 },
-                    { label: 'Schedule Slippage & Milestone Ratio', weight: 16 },
-                    { label: 'Ministry & Sector Identifier', weight: 12 },
-                  ].map((f, i) => (
-                    <div key={i} style={{ marginBottom: 5 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: theme.textMuted, marginBottom: 2 }}>
-                        <span>{f.label}</span>
-                        <span style={{ fontFamily: "'JetBrains Mono',monospace" }}>{f.weight}%</span>
-                      </div>
-                      <div style={{ height: 4, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ width: `${f.weight * 3}%`, height: '100%', background: '#8b5cf6', borderRadius: 2 }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Section B: Additional External Variables Recommended with Interactive Toggles */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#10b981', fontWeight: 700 }}>2. Interactive Feature Extensions</span>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,0.15)', padding: '1px 6px', borderRadius: 4 }}>
-                      +{activeLift}% Boost
-                    </span>
-                  </div>
-                  {[
-                    { key: 'wpi', label: 'Commodity Price Index (WPI Steel/Cement)', lift: '+11% Accuracy' },
-                    { key: 'landLit', label: 'State-Level Land Litigation Case Density', lift: '+9% Accuracy' },
-                    { key: 'monsoon', label: 'IMD Monsoon & Rainfall Deviation Index', lift: '+7% Accuracy' },
-                    { key: 'credit', label: 'Contractor Credit & Solvency Rating', lift: '+5% Accuracy' },
-                  ].map((ext) => {
-                    const active = enabledFeatures[ext.key];
-                    return (
-                      <div key={ext.key} onClick={() => toggleFeature(ext.key)}
-                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: active ? (isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)') : 'transparent', opacity: active ? 1 : 0.5, borderRadius: 8, marginBottom: 4, border: `1px solid ${active ? '#10b98150' : theme.border}`, cursor: 'pointer', transition: 'all 0.2s' }}>
-                        <span style={{ fontSize: '0.64rem', color: active ? theme.textPrimary : theme.textMuted, fontWeight: active ? 600 : 400 }}>
-                          {active ? '☑' : '☐'} {ext.label}
-                        </span>
-                        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: active ? '#10b981' : theme.textMuted, fontWeight: 700 }}>{ext.lift}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </InfraCard>
-
-            </div>
-
-            {/* Outcome (i): Open Source Architecture & Deployment Stack */}
-            <InfraCard accentColor="#3b82f6" style={{ padding: '1.2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.6rem' }}>
-                <Cpu size={14} color="#3b82f6" />
-                <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.9rem', color: theme.textPrimary, margin: 0 }}>
-                  Outcome (i): 100% Open-Source Architecture & National Deployment Stack
-                </h3>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-                {[
-                  { title: 'Core ML Stack', items: 'Python · Scikit-Learn · XGBoost · LightGBM', icon: '🐍' },
-                  { title: 'Interactive Frontend', items: 'React 18 · Chart.js · Framer Motion', icon: '⚛️' },
-                  { title: 'LLM Intelligence', items: 'Ollama · Llama-3 · LangChain · Vector DB', icon: '🦙' },
-                  { title: 'Deployment & Sovereign Cloud', items: 'Docker · FastAPI · PostgreSQL · Linux NIC', icon: '🐳' },
-                ].map((st, i) => (
-                  <div key={i} style={{ padding: '8px 10px', background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderRadius: 8, border: `1px solid ${theme.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                      <span>{st.icon}</span>
-                      <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.72rem', color: theme.textPrimary }}>{st.title}</span>
-                    </div>
-                    <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>{st.items}</div>
-                  </div>
-                ))}
-              </div>
-            </InfraCard>
-
-          </motion.div>
-        )}
       </AnimatePresence>
     </motion.div>
   );
