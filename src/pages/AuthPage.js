@@ -1,547 +1,643 @@
 // ============================================================
-//  AuthPage v2 — Next-Gen Login UI
-//  Features: holographic grid, 3D card tilt, cursor spotlight,
-//  animated gradient text, enhanced portal selector, typing effects
+//  AuthPage v5 — PAIMANA-EWS Sovereign Infrastructure Intelligence
+//  Restored Indigo / Purple / Violet Color Accents & Theme
 // ============================================================
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../AuthContext';
-import { Shield, Eye, EyeOff, LogIn, UserPlus, Building2, User, ChevronLeft, CheckCircle, Zap, Globe, Lock } from 'lucide-react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import {
+  Shield, Eye, EyeOff, LogIn, Building2, Lock,
+  Brain, BarChart3, Activity, Layers
+} from 'lucide-react';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import ParticleBackground from '../components/ParticleBackground';
 import GlowButton from '../components/GlowButton';
 
-// ─── 3D Tilt Card Hook ───────────────────────────────────────
-function useTilt() {
-  const ref = useRef(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [shine, setShine] = useState({ x: 50, y: 50 });
+// ─── Interactive 3D Hero Graphic Component ────────────────────
+function Interactive3DGraphic() {
+  const containerRef = useRef(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-  const handleMouseMove = useCallback((e) => {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 16;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -16;
-    const sx = ((e.clientX - rect.left) / rect.width) * 100;
-    const sy = ((e.clientY - rect.top) / rect.height) * 100;
-    setTilt({ x, y });
-    setShine({ x: sx, y: sy });
-  }, []);
+  // Smooth springs for 3D tilt
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [18, -18]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-22, 22]), { stiffness: 200, damping: 20 });
 
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
-    setShine({ x: 50, y: 50 });
-  }, []);
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
 
-  return { ref, tilt, shine, handleMouseMove, handleMouseLeave };
-}
-
-// ─── Holographic Portal Card ──────────────────────────────────
-function PortalCard({ icon: Icon, title, sub, badge, badgeColor, onClick, accentColor }) {
-  const { ref, tilt, shine, handleMouseMove, handleMouseLeave } = useTilt();
-  const [hovered, setHovered] = useState(false);
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
-    <button
-      ref={ref}
-      onClick={onClick}
+    <div
+      ref={containerRef}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => { handleMouseLeave(); setHovered(false); }}
-      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={handleMouseLeave}
       style={{
-        display: 'flex', alignItems: 'center', gap: 14, padding: '16px',
-        background: hovered
-          ? `rgba(${accentColor === 'blue' ? '59,130,246' : '16,185,129'},0.06)`
-          : 'rgba(10,16,36,0.5)',
-        border: `1px solid rgba(${accentColor === 'blue' ? '59,130,246' : '16,185,129'},${hovered ? 0.2 : 0.08})`,
-        borderRadius: 16, cursor: 'pointer', width: '100%', marginBottom: '1rem',
-        textAlign: 'left', fontFamily: "'Plus Jakarta Sans',sans-serif",
-        transform: `perspective(700px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
-        transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1), border-color 0.2s',
-        boxShadow: hovered
-          ? `0 16px 40px rgba(0,0,0,0.3), 0 0 30px rgba(${accentColor === 'blue' ? '59,130,246' : '16,185,129'},0.12)`
-          : '0 4px 16px rgba(0,0,0,0.2)',
-        position: 'relative', overflow: 'hidden',
+        width: '100%',
+        height: '310px',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        perspective: 1200,
+        cursor: 'pointer',
+        margin: '1.25rem 0',
       }}
     >
-      {/* Shine overlay */}
-      {hovered && (
-        <span style={{
-          position: 'absolute', inset: 0, borderRadius: 'inherit',
-          background: `radial-gradient(circle at ${shine.x}% ${shine.y}%, rgba(255,255,255,0.06) 0%, transparent 60%)`,
-          pointerEvents: 'none', transition: 'none',
-        }} />
-      )}
-      {/* Top gradient line */}
-      {hovered && (
-        <span style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-          background: `linear-gradient(90deg, transparent, rgba(${accentColor === 'blue' ? '59,130,246' : '16,185,129'},0.6), transparent)`,
-          pointerEvents: 'none',
-        }} />
-      )}
-      <div style={{
-        width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-        background: accentColor === 'blue' ? 'rgba(59,130,246,0.08)' : 'rgba(16,185,129,0.08)',
-        border: `2px solid rgba(${accentColor === 'blue' ? '59,130,246' : '16,185,129'},${hovered ? 0.3 : 0.15})`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'all 0.3s',
-        boxShadow: hovered ? `0 0 20px rgba(${accentColor === 'blue' ? '59,130,246' : '16,185,129'},0.2)` : 'none',
-      }}>
-        <Icon size={26} color={accentColor === 'blue' ? '#60a5fa' : '#34d399'} />
-      </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e2e8f0', marginBottom: 3 }}>{title}</div>
-        <div style={{ fontSize: '0.72rem', color: '#5a6d8a' }}>{sub}</div>
-      </div>
-      <div style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.68rem', fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", background: accentColor === 'blue' ? 'rgba(59,130,246,0.12)' : 'rgba(16,185,129,0.12)', color: accentColor === 'blue' ? '#60a5fa' : '#34d399' }}>
-        {badge}
-      </div>
-    </button>
-  );
-}
+      <motion.div
+        style={{
+          width: '280px',
+          height: '230px',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          rotateX,
+          rotateY,
+        }}
+      >
+        {/* Background 3D Pulsing Ring */}
+        <motion.div
+          animate={{ rotateZ: 360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+          style={{
+            position: 'absolute',
+            inset: '-20px',
+            borderRadius: '50%',
+            border: '2px dashed rgba(139, 92, 246, 0.35)',
+            transform: 'translateZ(-40px)',
+            boxShadow: '0 0 50px rgba(124, 58, 237, 0.2)',
+          }}
+        />
 
-// ─── Portal Selector ─────────────────────────────────────────
-function PortalSelector({ onSelect }) {
-  const [hoverImage, setHoverImage] = useState(false);
-  const { scrollY } = useScroll();
-  const parallaxY = useTransform(scrollY, [0, 500], [0, 50]);
-
-  return (
-    <div className="auth-page-container" style={S.page}>
-      <div className="hero-left">
-        <div style={S.orb1} />
-        <div style={S.orb2} />
-        
-        <div style={S.liveBadge}>
-          <div style={S.liveDot} />
-          LIVE · System Online
-        </div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16,1,0.3,1] }}
-          style={S.heroInner}
+        {/* 3D Glassmorphic Main Central Platform */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, rgba(99, 102, 241, 0.08) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1.5px solid rgba(139, 92, 246, 0.35)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+            transform: 'translateZ(0px)',
+          }}
         >
-          <div style={S.logoRow}>
-            <div style={S.logoIcon}>
-              <Shield size={28} color="#0097d8" />
-            </div>
-            <span style={S.logoText}>PAIMANA<span style={{ color: '#0097d8' }}>-EWS</span></span>
-          </div>
-
-          <h1 style={S.headline}>Sovereign Infrastructure Intelligence & Early Warning System</h1>
-          <p style={S.tagline}>MoSPI IPMD Portal · AI-driven cost overrun forecasting · 1,775 mega-projects</p>
-
-          <div style={S.statsRow}>
-            <div style={S.stat}>
-              <span style={S.statVal}>1,775</span>
-              <span style={S.statLabel}>Central Projects</span>
-            </div>
-            <div style={S.stat}>
-              <span style={S.statVal}>₹37.11L Cr</span>
-              <span style={S.statLabel}>Monitored Portfolio</span>
-            </div>
-            <div style={S.stat}>
-              <span style={S.statVal}>284+</span>
-              <span style={S.statLabel}>Issues Tracked</span>
-            </div>
-          </div>
-          
-          <div style={S.ctaRow}>
-            <button style={S.btnPrimary} onClick={() => onSelect('user')}>Citizen Portal</button>
-            <button style={S.btnSecondary} onClick={() => onSelect('admin')}>Gov Portal</button>
-          </div>
-        </motion.div>
-      </div>
-
-      <div className="hero-right">
-        <motion.div 
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.16,1,0.3,1] }}
-          style={{ width: '100%', height: '100%' }}
-        >
-          <motion.div 
-            style={{...S.rightImageContainer, y: parallaxY}}
-            onMouseEnter={() => setHoverImage(true)}
-            onMouseLeave={() => setHoverImage(false)}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          {/* Glowing Center Hologram Sphere */}
+          <div
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 22,
+              background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 35px rgba(124, 58, 237, 0.65), 0 0 15px rgba(99, 102, 241, 0.8)',
+              transform: 'translateZ(30px)',
+              animation: 'floatOrb 4s ease-in-out infinite',
+            }}
           >
-            <motion.div 
-              style={S.rightImage}
-              animate={{ scale: hoverImage ? 1.05 : 1.0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          </motion.div>
+            <Shield size={34} color="white" />
+          </div>
+
+          <div style={{ textAlign: 'center', transform: 'translateZ(25px)' }}>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#f8fafc' }}>
+              PAIMANA<span style={{ color: '#0097d8' }}>-EWS</span>
+            </div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem', color: '#a78bfa', letterSpacing: '0.08em', marginTop: 2 }}>
+              PREDICTIVE AI ENGINE
+            </div>
+          </div>
+        </div>
+
+        {/* Floating 3D Pill Badge #1 (Top Left) */}
+        <motion.div
+          animate={{ y: [-4, 4, -4] }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute',
+            top: '-15px',
+            left: '-25px',
+            padding: '8px 14px',
+            borderRadius: '20px',
+            background: 'rgba(15, 23, 42, 0.88)',
+            border: '1px solid rgba(139, 92, 246, 0.4)',
+            backdropFilter: 'blur(12px)',
+            color: '#a78bfa',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(139, 92, 246, 0.25)',
+            transform: 'translateZ(45px)',
+          }}
+        >
+          <Layers size={14} /> 1,775 Projects
         </motion.div>
-      </div>
+
+        {/* Floating 3D Pill Badge #2 (Top Right) */}
+        <motion.div
+          animate={{ y: [4, -4, 4] }}
+          transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-30px',
+            padding: '8px 14px',
+            borderRadius: '20px',
+            background: 'rgba(15, 23, 42, 0.88)',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            backdropFilter: 'blur(12px)',
+            color: '#34d399',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(16, 185, 129, 0.2)',
+            transform: 'translateZ(55px)',
+          }}
+        >
+          <BarChart3 size={14} /> ₹37.11L Cr
+        </motion.div>
+
+        {/* Floating 3D Pill Badge #3 (Bottom Right) */}
+        <motion.div
+          animate={{ y: [-5, 5, -5] }}
+          transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute',
+            bottom: '-15px',
+            right: '-20px',
+            padding: '8px 14px',
+            borderRadius: '20px',
+            background: 'rgba(15, 23, 42, 0.88)',
+            border: '1px solid rgba(245, 158, 11, 0.4)',
+            backdropFilter: 'blur(12px)',
+            color: '#fbbf24',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(245, 158, 11, 0.2)',
+            transform: 'translateZ(50px)',
+          }}
+        >
+          <Brain size={14} /> 92.4% AI Accuracy
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
 
-// ─── User Login / Signup ─────────────────────────────────────
-function UserAuth({ onBack }) {
-  const { login, signup } = useAuth();
-  const [tab, setTab] = useState('login');
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleLogin = async () => {
-    if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
-    setLoading(true); setError('');
-    const res = await login(form.email, form.password, 'user');
-    if (!res.ok) setError(res.error);
-    setLoading(false);
-  };
-
-  const handleSignup = async () => {
-    if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
-    setLoading(true); setError(''); setSuccess('');
-    const res = await signup(form.name, form.email, form.password);
-    if (!res.ok) setError(res.error);
-    else setSuccess('Account created! Logging you in…');
-    setLoading(false);
-  };
-
-  const fillDemo = (e, p) => { setForm(f => ({ ...f, email: e, password: p })); };
-
-  return (
-    <div className="auth-page-container" style={S.page}>
-      <div className="hero-left" style={{ background: 'linear-gradient(135deg, #060a16 0%, #0c1530 50%, #1e3a8a 100%)' }}>
-        <ParticleBackground />
-        <div className="holographic-grid" />
-        <div style={S.heroInner}>
-          <div style={S.logoRow}>
-            <div style={S.logoIcon}><User size={24} color="white" /></div>
-            <span style={S.logoText}>Citizen<span style={{ color: '#60a5fa' }}>Portal</span></span>
-          </div>
-          <h1 style={{ ...S.headline, fontSize: '2.2rem' }}>Your Voice,<br />Your City,<br />Your Data</h1>
-          <p style={S.tagline}>Report civic issues · Track government projects · Hold officials accountable</p>
-          <div style={S.featureList}>
-            {['GPS-tagged issue reporting', 'Voice reports in English', 'Real-time project tracking', 'Community trust scores', 'Before/After photo proofs', 'Share ward report cards'].map(f => (
-              <div key={f} style={S.featureItem}>
-                <CheckCircle size={16} color="#60a5fa" style={{ flexShrink: 0 }} />
-                <span>{f}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div style={S.orb1} /><div style={S.orb2} /><div style={S.orb3} />
-      </div>
-      <div className="hero-right" style={{
-        backgroundImage: 'linear-gradient(to bottom right, rgba(15,23,42,0.85), rgba(15,23,42,0.4)), url("https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&q=80&w=1200")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
-        <div style={S.card}>
-          <button onClick={onBack} style={S.backBtn}><ChevronLeft size={14} /> All Portals</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.5rem' }}>
-            <div style={{ ...S.logoIcon, width: 36, height: 36, background: 'rgba(59,130,246,0.08)', border: '2px solid rgba(59,130,246,0.18)' }}><User size={16} color="#60a5fa" /></div>
-            <div>
-              <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#f1f5f9' }}>Citizen Portal</div>
-              <div style={{ fontSize: '0.68rem', color: '#5a6d8a', fontFamily: "'JetBrains Mono',monospace" }}>CivicSense · Pune</div>
-            </div>
-          </div>
-
-          <div style={S.tabRow}>
-            {[['login', 'Sign In'], ['register', 'Sign Up']].map(([id, label]) => (
-              <button key={id} onClick={() => { setTab(id); setError(''); setSuccess(''); }}
-                style={{ ...S.tabBtn, ...(tab === id ? S.tabBtnActive : {}) }}>{label}</button>
-            ))}
-          </div>
-
-          {tab === 'login' && <>
-            <div style={S.field}>
-              <label style={S.label}>Email Address</label>
-              <input style={S.input} type="email" placeholder="you@example.com" value={form.email}
-                onChange={e => set('email', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-            </div>
-            <div style={S.field}>
-              <label style={S.label}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <input style={{ ...S.input, paddingRight: 40 }} type={show ? 'text' : 'password'} placeholder="••••••••"
-                  value={form.password} onChange={e => set('password', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-                <button onClick={() => setShow(s => !s)} style={S.eyeBtn}>
-                  {show ? <EyeOff size={15} color="#5a6d8a" /> : <Eye size={15} color="#5a6d8a" />}
-                </button>
-              </div>
-            </div>
-            {error && <div style={S.error}>{error}</div>}
-            <GlowButton variant="primary" size="lg" loading={loading} onClick={handleLogin}
-              icon={<LogIn size={16} />} style={{ width: '100%', marginBottom: '1.25rem' }}>
-              Sign In
-            </GlowButton>
-            <div style={S.divider}><span style={S.divTxt}>Demo Accounts</span></div>
-            <div style={S.demoGrid}>
-              {[
-                { label: 'Ananya Kumar', e: 'ananya@civicsense.in', p: 'citizen123', color: '#60a5fa' },
-                { label: 'Arjun Sharma', e: 'arjun@civicsense.in', p: 'arjun123', color: '#34d399' },
-              ].map(d => (
-                <button key={d.label} onClick={() => fillDemo(d.e, d.p)}
-                  style={{ ...S.demoBtn, borderColor: `${d.color}20`, color: d.color }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}>
-                    <User size={12} color={d.color} /> {d.label}
-                  </div>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', opacity: 0.7 }}>{d.e}</span>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', opacity: 0.5 }}>{d.p}</span>
-                </button>
-              ))}
-            </div>
-          </>}
-
-          {tab === 'register' && <>
-            <div style={S.field}>
-              <label style={S.label}>Full Name</label>
-              <input style={S.input} placeholder="e.g. Priya Sharma" value={form.name} onChange={e => set('name', e.target.value)} />
-            </div>
-            <div style={S.field}>
-              <label style={S.label}>Email Address</label>
-              <input style={S.input} type="email" placeholder="you@example.com" value={form.email} onChange={e => set('email', e.target.value)} />
-            </div>
-            <div style={S.field}>
-              <label style={S.label}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <input style={{ ...S.input, paddingRight: 40 }} type={show ? 'text' : 'password'} placeholder="Min 6 characters"
-                  value={form.password} onChange={e => set('password', e.target.value)} />
-                <button onClick={() => setShow(s => !s)} style={S.eyeBtn}>
-                  {show ? <EyeOff size={15} color="#5a6d8a" /> : <Eye size={15} color="#5a6d8a" />}
-                </button>
-              </div>
-            </div>
-            <div style={S.field}>
-              <label style={S.label}>Confirm Password</label>
-              <input style={S.input} type="password" placeholder="Re-enter password"
-                value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)} />
-            </div>
-            {error && <div style={S.error}>{error}</div>}
-            {success && <div style={S.successMsg}><CheckCircle size={14} /> {success}</div>}
-            <GlowButton variant="success" size="lg" loading={loading} onClick={handleSignup}
-              icon={<UserPlus size={16} />} style={{ width: '100%', marginBottom: '1rem' }}>
-              Create Account
-            </GlowButton>
-            <p style={{ fontSize: '0.72rem', color: '#5a6d8a', textAlign: 'center', marginTop: 8 }}>
-              Already have an account? <button onClick={() => setTab('login')} style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontWeight: 600, fontSize: '0.72rem' }}>Sign In</button>
-            </p>
-          </>}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Admin Login ─────────────────────────────────────────────
-function AdminAuth({ onBack }) {
-  const { login, ADMIN_USERS } = useAuth();
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleLogin = async () => {
-    if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
-    setLoading(true); setError('');
-    const res = await login(form.email, form.password, 'admin');
-    if (!res.ok) setError(res.error);
-    setLoading(false);
-  };
-
-  const fillAdmin = (a) => setForm({ email: a.email, password: a.password });
-
-  return (
-    <div className="auth-page-container" style={S.page}>
-      <div className="hero-left" style={{ background: 'linear-gradient(135deg, #060a16 0%, #052e16 50%, #14532d 100%)' }}>
-        <ParticleBackground />
-        <div className="holographic-grid" />
-        <div style={S.heroInner}>
-          <div style={S.logoRow}>
-            <div style={{ ...S.logoIcon, background: 'rgba(16,185,129,0.12)' }}><Building2 size={24} color="white" /></div>
-            <span style={S.logoText}>Gov<span style={{ color: '#34d399' }}>Portal</span></span>
-          </div>
-          <h1 style={{ ...S.headline, fontSize: '2.2rem' }}>Pune Municipal<br />Corporation<br />Admin Panel</h1>
-          <p style={S.tagline}>Restricted access · Government officials only · Authorized personnel</p>
-          <div style={S.featureList}>
-            {['Project management & approvals', 'Citizen complaint review', 'City-wide analytics dashboard', 'Issue resolution tracking', 'Official announcement tools', 'System configuration'].map(f => (
-              <div key={f} style={S.featureItem}>
-                <CheckCircle size={16} color="#34d399" style={{ flexShrink: 0 }} />
-                <span>{f}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '12px 16px', marginTop: '1.5rem' }}>
-            <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>🔒 SECURE ACCESS</div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem' }}>This portal is for authorized PMC officials only.</div>
-          </div>
-        </div>
-        <div style={S.orb1} /><div style={S.orb2} /><div style={S.orb3} />
-      </div>
-      <div className="hero-right" style={{
-        backgroundImage: 'linear-gradient(to bottom right, rgba(15,23,42,0.85), rgba(15,23,42,0.4)), url("https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1200")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
-        <div style={S.card}>
-          <button onClick={onBack} style={S.backBtn}><ChevronLeft size={14} /> All Portals</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.5rem' }}>
-            <div style={{ ...S.logoIcon, width: 36, height: 36, background: 'rgba(16,185,129,0.08)', border: '2px solid rgba(16,185,129,0.18)' }}><Building2 size={16} color="#34d399" /></div>
-            <div>
-              <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 800, fontSize: '1rem', color: '#f1f5f9' }}>Government Portal</div>
-              <div style={{ fontSize: '0.68rem', color: '#5a6d8a', fontFamily: "'JetBrains Mono',monospace" }}>Pune Municipal Corporation</div>
-            </div>
-          </div>
-
-          <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.12)', borderRadius: 10, padding: '10px 14px', fontSize: '0.75rem', color: '#fbbf24', marginBottom: '1.25rem', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            <Lock size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-            <span>Restricted access. Only authorized PMC officials may log in here.</span>
-          </div>
-
-          <div style={S.field}>
-            <label style={S.label}>Official Email</label>
-            <input style={S.input} type="email" placeholder="name@pmc.gov.in" value={form.email}
-              onChange={e => set('email', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-          </div>
-          <div style={S.field}>
-            <label style={S.label}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <input style={{ ...S.input, paddingRight: 40 }} type={show ? 'text' : 'password'} placeholder="••••••••"
-                value={form.password} onChange={e => set('password', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-              <button onClick={() => setShow(s => !s)} style={S.eyeBtn}>
-                {show ? <EyeOff size={15} color="#5a6d8a" /> : <Eye size={15} color="#5a6d8a" />}
-              </button>
-            </div>
-          </div>
-          {error && <div style={S.error}>{error}</div>}
-          <GlowButton variant="success" size="lg" loading={loading} onClick={handleLogin}
-            icon={<LogIn size={16} />} style={{ width: '100%', marginBottom: '1.25rem' }}>
-            Admin Sign In
-          </GlowButton>
-
-          <div style={S.divider}><span style={S.divTxt}>Demo Admin Accounts</span></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {ADMIN_USERS.map(a => (
-              <button key={a.uid} onClick={() => fillAdmin(a)}
-                style={{ ...S.demoBtn, borderColor: 'rgba(16,185,129,0.15)', color: '#34d399', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: '0.8rem' }}>
-                    <Building2 size={12} color="#34d399" /> {a.name}
-                  </div>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', opacity: 0.6 }}>{a.email}</span>
-                </div>
-                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.6rem', opacity: 0.5 }}>{a.password}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Admin-Only Login Page ──────────────────────────────
+// ─── Main PAIMANA-EWS Sovereign Auth Page ─────────────────────
 export default function AuthPage() {
+  const { login } = useAuth();
+  const [activeTab, setActiveTab] = useState('admin');
+  const [form, setForm] = useState({ email: 'admin@mospi.gov.in', password: 'admin123' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleLogin = async () => {
+    if (!form.email || !form.password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const res = await login(form.email, form.password, activeTab);
+    if (!res.ok) {
+      setError(res.error || 'Authentication failed.');
+    }
+    setLoading(false);
+  };
+
+  const fillDemo = (email, password, roleTab = 'admin') => {
+    setActiveTab(roleTab);
+    setForm(f => ({ ...f, email, password }));
+    setError('');
+  };
+
   return (
     <>
       <style>{`
-        .auth-page-container {
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        .paimana-auth-container {
           display: flex;
           height: 100vh;
           overflow-y: auto;
           overflow-x: hidden;
-          background: #1e293b;
+          background: #060a16;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          color: #f8fafc;
+          position: relative;
         }
-        .hero-left {
-          flex: 1.2;
-          padding: 4rem;
+
+        .hero-left-paimana {
+          flex: 1.25;
+          padding: 3rem 3.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
           position: relative;
+          background: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+                      radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                      linear-gradient(135deg, #040814 0%, #0a1128 50%, #120e28 100%);
+          overflow: hidden;
         }
-        .hero-right {
+
+        .hero-right-paimana {
           flex: 1;
-          padding: 2rem;
+          padding: 2.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
           position: relative;
-          z-index: 5;
+          z-index: 10;
+          background: linear-gradient(180deg, rgba(8, 14, 30, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%),
+                      url("https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&q=80&w=1200") center/cover no-repeat;
         }
-        @media (max-width: 900px) {
-          .auth-page-container {
+
+        .paimana-glass-card {
+          width: 100%;
+          max-width: 440px;
+          background: rgba(11, 18, 38, 0.78);
+          backdrop-filter: blur(32px);
+          -webkit-backdrop-filter: blur(32px);
+          border-radius: 28px;
+          border: 1px solid rgba(139, 92, 246, 0.25);
+          padding: 2.25rem;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(124, 58, 237, 0.12);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .custom-input {
+          width: 100%;
+          padding: 12px 16px;
+          border: 1.5px solid rgba(139, 92, 246, 0.2);
+          border-radius: 12px;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 0.9rem;
+          color: #f1f5f9;
+          outline: none;
+          background: rgba(6, 12, 28, 0.7);
+          box-sizing: border-box;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .custom-input:focus {
+          border-color: #8b5cf6;
+          box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+          background: rgba(8, 16, 36, 0.85);
+        }
+
+        @keyframes floatOrb {
+          0%, 100% { transform: translateZ(30px) translateY(0px); }
+          50% { transform: translateZ(30px) translateY(-8px); }
+        }
+
+        @media (max-width: 960px) {
+          .paimana-auth-container {
             flex-direction: column;
             height: auto;
             min-height: 100vh;
           }
-          .hero-left {
+          .hero-left-paimana {
             padding: 3rem 1.5rem;
             flex: none;
           }
-          .hero-right {
-            padding: 1.5rem;
-            min-height: 400px;
+          .hero-right-paimana {
+            padding: 2rem 1.5rem;
+            min-height: 500px;
             flex: none;
           }
         }
       `}</style>
-      <AdminAuth onBack={null} />
+
+      <div className="paimana-auth-container">
+        <ParticleBackground />
+
+        {/* ── LEFT HERO: Title, Description & 3D Interactive Design ── */}
+        <div className="hero-left-paimana">
+          <div style={S.orbTop} />
+          <div style={S.orbBottom} />
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={S.heroInner}
+          >
+            {/* Top Ministry Badge */}
+            <div style={S.topBadge}>
+              <span>🇮🇳 MoSPI IPMD</span>
+              <span style={{ opacity: 0.4 }}>•</span>
+              <span>SIH 2026</span>
+            </div>
+
+            {/* Clean Title */}
+            <h1 style={S.headline}>
+              PAIMANA<span style={{ color: '#0097d8' }}>-EWS</span>
+            </h1>
+            <div style={S.subHeadline}>
+              AI Infrastructure Monitoring & Early Warning Platform
+            </div>
+
+            {/* Concise 2-Line Description */}
+            <p style={S.conciseDescription}>
+              An intelligent monitoring system built for MoSPI to track central infrastructure projects, predict cost overruns, and detect project delays in real time.
+            </p>
+
+            {/* Interactive 3D Graphic */}
+            <Interactive3DGraphic />
+
+            {/* Quick 3 Feature Pills */}
+            <div style={S.featurePillRow}>
+              <div style={S.pillItem}>
+                <Brain size={14} color="#a78bfa" />
+                <span>AI Delay Regressor</span>
+              </div>
+              <div style={S.pillItem}>
+                <Activity size={14} color="#34d399" />
+                <span>Red/Amber Risk Triage</span>
+              </div>
+              <div style={S.pillItem}>
+                <BarChart3 size={14} color="#fbbf24" />
+                <span>MoSPI Flash Reports</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ── RIGHT HERO: Executive & Analyst Login Portal ── */}
+        <div className="hero-right-paimana">
+          <div className="paimana-glass-card">
+            {/* Top Card Icon & Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.3rem' }}>
+              <div style={S.cardHeaderIcon}>
+                <Building2 size={20} color="#a78bfa" />
+              </div>
+              <div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: '1.1rem', color: '#f8fafc' }}>
+                  MoSPI IPMD Portal Sign In
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace" }}>
+                  PAIMANA-EWS Sovereign Intelligence Platform
+                </div>
+              </div>
+            </div>
+
+            {/* Security Access Badge */}
+            <div style={S.securityBadge}>
+              <Lock size={13} color="#fbbf24" style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Authorized personnel & registered infrastructure analysts only.</span>
+            </div>
+
+            {/* Role Tab Selector */}
+            <div style={S.tabContainer}>
+              <button
+                onClick={() => { setActiveTab('admin'); setError(''); }}
+                style={{ ...S.tabBtn, ...(activeTab === 'admin' ? S.tabBtnActive : {}) }}
+              >
+                🏛 MoSPI Admin
+              </button>
+              <button
+                onClick={() => { setActiveTab('user'); setError(''); }}
+                style={{ ...S.tabBtn, ...(activeTab === 'user' ? S.tabBtnActive : {}) }}
+              >
+                👤 Field Analyst
+              </button>
+            </div>
+
+            {/* Email Input */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={S.fieldLabel}>Official Email Address</label>
+              <input
+                className="custom-input"
+                type="email"
+                placeholder={activeTab === 'admin' ? 'admin@mospi.gov.in' : 'ananya@civicsense.in'}
+                value={form.email}
+                onChange={e => setField('email', e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+
+            {/* Password Input */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={S.fieldLabel}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  className="custom-input"
+                  style={{ paddingRight: 42 }}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={e => setField('password', e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(s => !s)}
+                  style={S.eyeToggle}
+                >
+                  {showPassword ? <EyeOff size={16} color="#94a3b8" /> : <Eye size={16} color="#94a3b8" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div style={S.errorAlert}>
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Sign In Button */}
+            <GlowButton
+              variant="primary"
+              size="lg"
+              loading={loading}
+              onClick={handleLogin}
+              icon={<LogIn size={18} />}
+              style={{ width: '100%', marginBottom: '1.25rem' }}
+            >
+              Sign In to PAIMANA-EWS
+            </GlowButton>
+
+            {/* 1-Click Demo Accounts */}
+            <div style={S.dividerLine}>
+              <span style={S.dividerText}>1-Click Demo Accounts</span>
+            </div>
+
+            <div style={S.demoGrid}>
+              {[
+                { name: 'Rajesh Patil', email: 'admin@mospi.gov.in', pass: 'admin123', role: 'MoSPI Admin', tab: 'admin', color: '#a78bfa' },
+                { name: 'Dr. Priya Deshmukh', email: 'director@ipmd.gov.in', pass: 'director123', role: 'IPMD Director', tab: 'admin', color: '#34d399' },
+                { name: 'Ananya Kumar', email: 'ananya@civicsense.in', pass: 'citizen123', role: 'Field Analyst', tab: 'user', color: '#fbbf24' },
+              ].map(d => (
+                <button
+                  key={d.email}
+                  type="button"
+                  onClick={() => fillDemo(d.email, d.pass, d.tab)}
+                  style={{
+                    ...S.demoCardBtn,
+                    borderColor: `${d.color}25`,
+                    background: 'rgba(6, 14, 30, 0.65)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.78rem', color: '#f1f5f9' }}>{d.name}</span>
+                    <span style={{ fontSize: '0.58rem', color: d.color, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>
+                      {d.role}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#94a3b8' }}>{d.email}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#64748b' }}>{d.pass}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div style={S.cardFooter}>
+              <span>MoSPI IPMD · Developed for SIH 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
 
+// ─── Inline Style Definitions ────────────────────────────────
 const S = {
-  page: { fontFamily: "'Plus Jakarta Sans',sans-serif" },
-  heroInner: { maxWidth: 600, position: 'relative', zIndex: 2 },
-  featureList: { display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1.5rem' },
-  featureItem: { display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', fontWeight: 500 },
-  logoRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' },
-  logoIcon: { width: 48, height: 48, background: 'linear-gradient(135deg, rgba(14,165,233,0.2), rgba(6,182,212,0.1))', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(14,165,233,0.3)', boxShadow: '0 0 30px rgba(14,165,233,0.2)', animation: 'ctaGlow 3s ease infinite' },
-  logoText: { fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1.5rem', color: 'white' },
-  logoHighlight: { color: '#0ea5e9' },
-  liveBadge: { position: 'absolute', top: '2rem', right: '2rem', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(30,41,59,0.8)', backdropFilter: 'blur(12px)', padding: '8px 14px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '0.75rem', fontWeight: 600, zIndex: 10 },
-  liveDot: { width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', animation: 'liveFlicker 2s infinite' },
-  headline: { fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '3.8rem', color: '#f8fafc', lineHeight: 1.1, marginBottom: '1.2rem', textShadow: '0 4px 20px rgba(0,0,0,0.2)', letterSpacing: '-0.02em' },
-  tagline: { color: '#94a3b8', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2.5rem' },
-  statsRow: { display: 'flex', gap: '1.2rem', marginBottom: '2.5rem', flexWrap: 'wrap' },
-  stat: { display: 'flex', flexDirection: 'column', gap: 4, background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(12px)', padding: '14px 22px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.08)' },
-  statVal: { fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1.8rem', color: '#38bdf8' },
-  statLabel: { fontFamily: "'JetBrains Mono',monospace", fontSize: '0.65rem', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  ctaRow: { display: 'flex', gap: '1rem', flexWrap: 'wrap' },
-  btnPrimary: { background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: 'white', padding: '16px 32px', borderRadius: '50px', border: 'none', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 8px 24px rgba(14,165,233,0.3)' },
-  btnSecondary: { background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', color: 'white', padding: '16px 32px', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.2)', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer', transition: 'all 0.3s' },
-  orb1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.1) 0%, transparent 70%)', top: -200, right: -200, zIndex: 1, filter: 'blur(60px)', animation: 'floatOrb 12s ease-in-out infinite' },
-  orb2: { position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)', bottom: -100, left: -100, zIndex: 1, filter: 'blur(55px)', animation: 'floatOrb2 16s ease-in-out infinite' },
-  rightImageContainer: { width: '100%', height: '100%', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.4)', position: 'relative' },
-  rightImage: { width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(30,41,59,0.2) 0%, rgba(30,41,59,0.5) 100%), url("/bharat_hero.png") center/cover no-repeat', transformOrigin: 'center center' },
-  card: { width: '100%', maxWidth: 440, background: 'rgba(23,31,51,0.7)', backdropFilter: 'blur(32px)', borderRadius: '24px', border: '1px solid rgba(137,206,255,0.15)', padding: '2.5rem', animation: 'heroTextFadeUp 0.4s cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 8px 40px rgba(0,0,0,0.4)' },
-  welcomeHeading: { fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: '1.8rem', fontWeight: 800, color: 'white', marginBottom: '0.5rem' },
-  systemOnline: { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(16,185,129,0.2)', marginBottom: '2rem' },
-  portalCard: { display: 'flex', alignItems: 'center', gap: 16, padding: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', marginBottom: '1rem' },
-  portalIcon: { width: 48, height: 48, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  portalText: { flex: 1 },
-  portalTitle: { color: 'white', fontWeight: 700, fontSize: '1.1rem', marginBottom: '2px' },
-  portalDesc: { color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' },
-  footer: { marginTop: '2rem', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', fontFamily: "'JetBrains Mono',monospace" },
-  backBtn: { display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#5a6d8a', cursor: 'pointer', fontSize: '0.78rem', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '0 0 1rem', marginBottom: '0.5rem', transition: 'color 0.2s' },
-  tabRow: { display: 'flex', background: 'rgba(10,16,36,0.5)', borderRadius: 11, padding: 3, marginBottom: '1.5rem', border: '1px solid rgba(99,140,255,0.06)' },
-  tabBtn: { flex: 1, padding: '9px', borderRadius: 9, border: 'none', background: 'none', color: '#5a6d8a', cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontWeight: 600, fontSize: '0.88rem', transition: 'all 0.25s' },
-  tabBtnActive: { background: 'rgba(59,130,246,0.1)', color: '#60a5fa', boxShadow: '0 0 20px rgba(59,130,246,0.08)' },
-  field: { marginBottom: '1rem' },
-  label: { display: 'block', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#5a6d8a', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' },
-  input: { width: '100%', padding: '11px 14px', border: '1.5px solid rgba(99,140,255,0.1)', borderRadius: 10, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: '0.88rem', color: '#e2e8f0', outline: 'none', background: 'rgba(10,16,36,0.6)', boxSizing: 'border-box', transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)' },
-  eyeBtn: { position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 2 },
-  error: { background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.15)', borderRadius: 8, padding: '9px 12px', fontSize: '0.78rem', color: '#fb7185', marginBottom: '1rem' },
-  successMsg: { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: 8, padding: '9px 12px', fontSize: '0.78rem', color: '#34d399', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 },
-  divider: { textAlign: 'center', borderTop: '1px solid rgba(99,140,255,0.06)', marginBottom: '1rem' },
-  divTxt: { background: '#070c1a', padding: '0 10px', position: 'relative', top: -9, fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: '#3e4f6b' },
-  demoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: '1.5rem' },
-  demoBtn: { padding: '10px 12px', borderRadius: 10, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: '0.8rem', background: 'rgba(10,16,36,0.5)', border: '1px solid rgba(99,140,255,0.08)', transition: 'all 0.25s' },
-  poweredBy: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'center', paddingTop: '1.5rem', borderTop: '1px solid rgba(99,140,255,0.05)', marginTop: '1.5rem' },
+  heroInner: { maxWidth: 540, width: '100%', position: 'relative', zIndex: 5 },
+  orbTop: {
+    position: 'absolute', width: 450, height: 450, borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)',
+    top: -120, right: -120, zIndex: 1, filter: 'blur(60px)',
+  },
+  orbBottom: {
+    position: 'absolute', width: 400, height: 400, borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+    bottom: -100, left: -100, zIndex: 1, filter: 'blur(60px)',
+  },
+  topBadge: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: 'rgba(124, 58, 237, 0.1)',
+    border: '1px solid rgba(139, 92, 246, 0.25)',
+    borderRadius: '30px', padding: '6px 14px', marginBottom: '1rem',
+    color: '#a78bfa', fontSize: '0.72rem', fontWeight: 700,
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  headline: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800,
+    fontSize: '3rem', color: '#f8fafc', lineHeight: 1.05,
+    marginBottom: '0.4rem', letterSpacing: '-0.02em',
+  },
+  subHeadline: {
+    fontFamily: "'Outfit', sans-serif", fontWeight: 700,
+    fontSize: '1.15rem', color: '#a78bfa', marginBottom: '0.8rem',
+  },
+  conciseDescription: {
+    color: '#94a3b8', fontSize: '0.98rem', lineHeight: 1.55,
+    marginBottom: '0.5rem', fontWeight: 400,
+  },
+  featurePillRow: {
+    display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem',
+  },
+  pillItem: {
+    display: 'flex', alignItems: 'center', gap: 6,
+    background: 'rgba(15, 23, 42, 0.65)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    padding: '6px 12px', borderRadius: '20px',
+    fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 600,
+  },
+  cardHeaderIcon: {
+    width: 40, height: 40, borderRadius: 12,
+    background: 'rgba(124, 58, 237, 0.12)',
+    border: '1.5px solid rgba(139, 92, 246, 0.3)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  securityBadge: {
+    background: 'rgba(245, 158, 11, 0.08)',
+    border: '1px solid rgba(245, 158, 11, 0.18)',
+    borderRadius: 10, padding: '8px 12px', fontSize: '0.73rem', color: '#fbbf24',
+    marginBottom: '1.1rem', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.35,
+  },
+  tabContainer: {
+    display: 'flex', background: 'rgba(6, 12, 28, 0.7)',
+    borderRadius: 12, padding: 3, marginBottom: '1.1rem',
+    border: '1px solid rgba(139, 92, 246, 0.18)',
+  },
+  tabBtn: {
+    flex: 1, padding: '9px 6px', borderRadius: 9, border: 'none',
+    background: 'none', color: '#94a3b8', cursor: 'pointer',
+    fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: '0.78rem',
+    transition: 'all 0.25s ease', textAlign: 'center',
+  },
+  tabBtnActive: {
+    background: 'rgba(124, 58, 237, 0.2)', color: '#a78bfa',
+    boxShadow: '0 0 16px rgba(124, 58, 237, 0.2)',
+    border: '1px solid rgba(139, 92, 246, 0.4)',
+  },
+  fieldLabel: {
+    display: 'block', fontFamily: "'JetBrains Mono', monospace",
+    fontSize: '0.63rem', color: '#94a3b8', marginBottom: 5,
+    textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600,
+  },
+  eyeToggle: {
+    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+    background: 'none', border: 'none', cursor: 'pointer', display: 'flex',
+    alignItems: 'center', padding: 4,
+  },
+  errorAlert: {
+    background: 'rgba(244, 63, 94, 0.12)',
+    border: '1px solid rgba(244, 63, 94, 0.25)',
+    borderRadius: 10, padding: '9px 12px', fontSize: '0.78rem', color: '#fb7185',
+    marginBottom: '1rem', lineHeight: 1.35,
+  },
+  dividerLine: {
+    textAlign: 'center', borderTop: '1px solid rgba(139, 92, 246, 0.15)',
+    marginBottom: '1rem', marginTop: '0.4rem', position: 'relative',
+  },
+  dividerText: {
+    background: '#0b1226', padding: '0 10px', position: 'relative', top: -9,
+    fontFamily: "'JetBrains Mono', monospace", fontSize: '0.58rem', color: '#64748b',
+    fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em',
+  },
+  demoGrid: { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '1rem' },
+  demoCardBtn: {
+    padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+    display: 'flex', flexDirection: 'column', textAlign: 'left',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    border: '1px solid rgba(139, 92, 246, 0.15)', transition: 'all 0.25s ease',
+  },
+  cardFooter: {
+    textAlign: 'center', color: '#64748b', fontSize: '0.68rem',
+    fontFamily: "'JetBrains Mono', monospace", marginTop: '0.4rem',
+  },
 };

@@ -3,11 +3,13 @@
 // ============================================================
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Pre-seeded ADMIN accounts for PAIMANA-EWS
+// Pre-seeded ADMIN accounts for PAIMANA-EWS (MoSPI IPMD)
 const ADMIN_USERS = [
-  { uid: 'admin-1', email: 'admin@pmc.gov.in',          password: 'admin123',       name: 'Rajesh Patil',    role: 'gov-admin' },
-  { uid: 'admin-2', email: 'director@pmc.gov.in',       password: 'director123',    name: 'Priya Deshmukh',  role: 'gov-admin' },
-  { uid: 'admin-3', email: 'commissioner@pmc.gov.in',   password: 'commissioner123',name: 'Suresh Jadhav',   role: 'gov-admin' },
+  { uid: 'admin-1', email: 'admin@mospi.gov.in',        password: 'admin123',       name: 'Rajesh Patil',    role: 'gov-admin' },
+  { uid: 'admin-2', email: 'director@ipmd.gov.in',       password: 'director123',    name: 'Priya Deshmukh',  role: 'gov-admin' },
+  { uid: 'admin-3', email: 'commissioner@mospi.gov.in',   password: 'commissioner123',name: 'Suresh Jadhav',   role: 'gov-admin' },
+  { uid: 'admin-4', email: 'admin@pmc.gov.in',          password: 'admin123',       name: 'Rajesh Patil',    role: 'gov-admin' },
+  { uid: 'admin-5', email: 'director@pmc.gov.in',       password: 'director123',    name: 'Priya Deshmukh',  role: 'gov-admin' },
 ];
 
 const AuthContext = createContext(null);

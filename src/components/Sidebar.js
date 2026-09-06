@@ -127,8 +127,8 @@ export default function Sidebar() {
             {(user?.name || 'A')[0].toUpperCase()}
           </motion.div>
           <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-            <div style={S.userName}>{user?.name || 'PMC Admin'}</div>
-            <div style={S.userRole}>🏛 Government Admin</div>
+            <div style={S.userName}>{user?.name || 'MoSPI Admin'}</div>
+            <div style={S.userRole}>🏛 MoSPI IPMD Official</div>
           </div>
           <div style={{ display: 'flex', gap: 2 }}>
             <motion.button onClick={() => navigate('/settings')} style={S.iconAction} whileHover={{ scale: 1.15 }} title="Settings">
@@ -150,7 +150,7 @@ function buildStyles(t, isDark) {
     darkOrb: { position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)', top: -60, right: -60, pointerEvents: 'none', filter: 'blur(40px)', animation: 'floatOrb 18s ease-in-out infinite' },
     lightGradient: { position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(180deg, rgba(59,130,246,0.04) 0%, rgba(99,102,241,0.02) 50%, transparent 100%)' },
     logoArea: { padding: '1.2rem 1.1rem', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${t.border}`, position: 'relative' },
-    logoIcon: { width: 40, height: 40, borderRadius: 13, flexShrink: 0, background: isDark ? 'linear-gradient(135deg, rgba(14,165,233,0.3), rgba(6,182,212,0.2))' : 'linear-gradient(135deg, #1d4ed8, #3b82f6, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isDark ? '0 0 20px rgba(14,165,233,0.3)' : '0 8px 20px -4px rgba(37,99,235,0.4)', position: 'relative', border: isDark ? '1px solid rgba(14,165,233,0.25)' : '1px solid rgba(255,255,255,0.3)' },
+    logoIcon: { width: 40, height: 40, borderRadius: 13, flexShrink: 0, background: isDark ? 'linear-gradient(135deg, rgba(124,58,237,0.4), rgba(99,102,241,0.3))' : 'linear-gradient(135deg, #7c3aed, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isDark ? '0 0 20px rgba(124,58,237,0.3)' : '0 8px 20px -4px rgba(124,58,237,0.4)', position: 'relative', border: isDark ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.3)' },
     logoPulse: { position: 'absolute', inset: -3, borderRadius: 16, border: isDark ? '1.5px solid rgba(14,165,233,0.2)' : '1.5px solid rgba(59,130,246,0.25)', animation: 'ctaGlow 3s ease infinite', pointerEvents: 'none' },
     logoTitle: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: '1.05rem', color: t.textPrimary, transition: 'color 0.3s' },
     logoSub: { fontFamily: "'JetBrains Mono', monospace", fontSize: '0.52rem', color: t.textFaint },

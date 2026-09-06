@@ -62,47 +62,47 @@ export const themes = {
   light: {
     id: 'light',
     label: 'Light',
-    // Core surfaces — White page background, Blue floating cards
-    bg:             '#ffffff',
-    surface:        'rgba(99, 140, 255, 0.92)',
-    surfaceMid:     '#eef2ff',
-    surfaceHigh:    '#638cff',
-    surfaceFloat:   '#638cff',
-    surfaceTop:     '#5b82f6',
-    // Text — Deep Navy, Royal Blue & Slate
-    textPrimary:    '#0f2042',
-    textSecondary:  '#2d3e68',
-    textMuted:      '#7185ad',
-    textFaint:      '#a0b2d6',
-    // Accents — Vibrant Cobalt Blue, Royal Indigo, Golden Amber
-    primary:        '#1d4ed8',
-    primaryLight:   '#3b82f6',
-    secondary:      '#2563eb',
+    // Core surfaces — Crisp Clean White Backgrounds & Cards
+    bg:             '#f8fafc',
+    surface:        '#ffffff',
+    surfaceMid:     '#f1f5f9',
+    surfaceHigh:    '#ffffff',
+    surfaceFloat:   '#ffffff',
+    surfaceTop:     '#f8fafc',
+    // Text — Dark Slate & Deep Navy for high contrast & crisp readability
+    textPrimary:    '#0f172a',
+    textSecondary:  '#334155',
+    textMuted:      '#64748b',
+    textFaint:      '#94a3b8',
+    // Accents — Vibrant Indigo & Royal Blue
+    primary:        '#4f46e5',
+    primaryLight:   '#6366f1',
+    secondary:      '#0284c7',
     tertiary:       '#f59e0b',
     warning:        '#f59e0b',
-    danger:         '#f43f5e',
+    danger:         '#ef4444',
     success:        '#10b981',
-    // Borders — Soft Glass Borders matching blue cards
-    border:         'rgba(99, 140, 255, 0.25)',
-    borderHover:    'rgba(29, 78, 216, 0.45)',
+    // Borders — Soft clean borders
+    border:         'rgba(226, 232, 240, 0.85)',
+    borderHover:    'rgba(99, 102, 241, 0.3)',
     // Sidebar
-    sidebarBg:      'rgba(255, 255, 255, 0.97)',
-    sidebarBorder:  'rgba(99, 140, 255, 0.18)',
-    sidebarActive:  'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)',
-    sidebarHover:   'rgba(37, 99, 235, 0.08)',
+    sidebarBg:      '#ffffff',
+    sidebarBorder:  'rgba(226, 232, 240, 0.85)',
+    sidebarActive:  'rgba(99, 102, 241, 0.08)',
+    sidebarHover:   'rgba(99, 102, 241, 0.04)',
     // Topbar
-    topbarBg:       'rgba(255, 255, 255, 0.96)',
-    topbarBorder:   'rgba(99, 140, 255, 0.18)',
-    // Card — Blue boxes / cards on white background
-    cardBg:         '#638cff',
-    cardShadow:     '0 14px 35px rgba(18, 48, 125, 0.18), 0 2px 8px rgba(99, 140, 255, 0.20)',
-    cardShadowHover:'0 22px 45px rgba(18, 48, 125, 0.28), 0 0 30px rgba(99, 140, 255, 0.40)',
+    topbarBg:       'rgba(255, 255, 255, 0.95)',
+    topbarBorder:   'rgba(226, 232, 240, 0.85)',
+    // Card — Crisp White Cards with soft subtle shadow
+    cardBg:         '#ffffff',
+    cardShadow:     '0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02)',
+    cardShadowHover:'0 12px 30px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04)',
     // Input
-    inputBg:        'rgba(255, 255, 255, 0.90)',
-    inputBorder:    'rgba(255, 255, 255, 0.70)',
+    inputBg:        '#ffffff',
+    inputBorder:    '#cbd5e1',
     // Fonts
     fontHeading:    "'Plus Jakarta Sans', sans-serif",
-    fontBody:       "'Inter', sans-serif",
+    fontBody:       "'Plus Jakarta Sans', sans-serif",
     fontMono:       "'JetBrains Mono', monospace",
   },
 };

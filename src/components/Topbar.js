@@ -13,7 +13,7 @@ import { useAuth } from '../AuthContext';
 import { useProjects } from '../ProjectContext';
 
 const PAGE_META = {
-  '/':         { name: 'PAIMANA-EWS Dashboard',color: '#0097d8', darkColor: '#38bdf8', emoji: '📊' },
+  '/':         { name: 'PAIMANA-EWS Dashboard',color: '#6366f1', darkColor: '#818cf8', emoji: '📊' },
   '/projects': { name: 'Projects (1,775)',     color: '#8b5cf6', darkColor: '#8b5cf6', emoji: '🏗️' },
   '/analytics':{ name: 'Analytics & Trends',   color: '#d946ef', darkColor: '#d946ef', emoji: '📈' },
   '/admin':    { name: 'MoSPI Admin Portal',   color: '#10b981', darkColor: '#34d399', emoji: '🏛️' },
