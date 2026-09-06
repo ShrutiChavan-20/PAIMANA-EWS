@@ -10,20 +10,13 @@ import { Bell, Search, MapPin, Command, X, LogOut, User, Settings, CheckCheck } 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeContext';
 import { useAuth } from '../AuthContext';
-import { useIssues } from '../IssueContext';
 import { useProjects } from '../ProjectContext';
 
 const PAGE_META = {
   '/':         { name: 'PAIMANA-EWS Dashboard',color: '#0097d8', darkColor: '#38bdf8', emoji: '📊' },
-  '/map':      { name: 'Geographic Map',       color: '#06b6d4', darkColor: '#06b6d4', emoji: '🗺️' },
   '/projects': { name: 'Projects (1,775)',     color: '#8b5cf6', darkColor: '#8b5cf6', emoji: '🏗️' },
   '/analytics':{ name: 'Analytics & Trends',   color: '#d946ef', darkColor: '#d946ef', emoji: '📈' },
-  '/issues':   { name: 'CUF Bottlenecks',      color: '#f43f5e', darkColor: '#f43f5e', emoji: '⚠️' },
-  '/report':   { name: 'Report Bottleneck',    color: '#f59e0b', darkColor: '#f59e0b', emoji: '📝' },
-  '/trust':    { name: 'Agency Benchmarks',    color: '#10b981', darkColor: '#10b981', emoji: '🏆' },
   '/admin':    { name: 'MoSPI Admin Portal',   color: '#10b981', darkColor: '#34d399', emoji: '🏛️' },
-  '/ai-chat':  { name: 'LLM Project Assistant',color: '#3b82f6', darkColor: '#60a5fa', emoji: '🤖' },
-  '/profile':  { name: 'My Profile',           color: '#8b5cf6', darkColor: '#a78bfa', emoji: '👤' },
   '/settings': { name: 'Settings',             color: '#6366f1', darkColor: '#818cf8', emoji: '⚙️' },
   '/publications': { name: 'Publications Archive', color: '#f59e0b', darkColor: '#fbbf24', emoji: '📚' },
   '/predict':  { name: 'Predictive AI Models', color: '#ef4444', darkColor: '#f43f5e', emoji: '🧠' },
@@ -126,7 +119,7 @@ export default function Topbar({ user: propUser }) {
   const navigate = useNavigate();
   const { theme, isDark } = useTheme();
   const { user: authUser, logout } = useAuth();
-  const { issues } = useIssues();
+  const issues = [];
   const { projects } = useProjects();
   const user = propUser || authUser;
   const raw = PAGE_META[location.pathname] || PAGE_META[Object.keys(PAGE_META).find(k => k !== '/' && location.pathname.startsWith(k)) || '/'] || PAGE_META['/'];

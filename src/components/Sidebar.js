@@ -17,23 +17,16 @@ const NAV = [
   {
     section: 'OVERVIEW', items: [
       { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: '#6366f1', darkColor: '#3b82f6' },
-      { path: '/map', icon: Map, label: 'Geographic Map', color: '#06b6d4', darkColor: '#06b6d4' },
       { path: '/projects', icon: FolderOpen, label: 'Projects (1,775)', color: '#8b5cf6', darkColor: '#8b5cf6' },
       { path: '/analytics', icon: BarChart3, label: 'Analytics & Trends', color: '#d946ef', darkColor: '#d946ef' },
       { path: '/publications', icon: BookOpen, label: 'Publications & Reports', color: '#f59e0b', darkColor: '#f59e0b' },
+      { path: '/admin', icon: Settings, label: 'Admin Panel', color: '#10b981', darkColor: '#34d399' },
     ]
   },
   {
     section: 'AI PREDICTIVE MODELS', items: [
       { path: '/predict', icon: Brain, label: 'Predictive Models', color: '#ef4444', darkColor: '#f43f5e' },
-      { path: '/ai-chat', icon: Bot, label: 'LLM Project Assistant', color: '#3b82f6', darkColor: '#60a5fa' },
-    ]
-  },
-  {
-    section: 'CUF AUDIT & FIELD VERIFICATION', items: [
-      { path: '/report', icon: FileText, label: 'Report Bottleneck', color: '#10b981', darkColor: '#34d399' },
-      { path: '/issues', icon: AlertTriangle, label: 'CUF Bottlenecks', color: '#f43f5e', darkColor: '#f43f5e' },
-      { path: '/trust', icon: Shield, label: 'Agency Benchmarks', color: '#06b6d4', darkColor: '#06b6d4' },
+      { path: '/settings', icon: Settings, label: 'System Settings', color: '#6366f1', darkColor: '#818cf8' },
     ]
   },
 ];
@@ -63,7 +56,7 @@ export default function Sidebar() {
         </motion.div>
         <div>
           <div style={S.logoTitle}>PAIMANA<span style={{ color: '#0097d8' }}>-EWS</span></div>
-          <div style={S.logoSub}>MoSPI · IPMD AI Suite</div>
+          <div style={S.logoSub}>MoSPI · IPMD Admin Suite</div>
         </div>
       </div>
 
@@ -74,9 +67,7 @@ export default function Sidebar() {
         {NAV.map(({ section, items }) => (
           <div key={section} style={{ marginBottom: 4 }}>
             <div style={S.sectionLabel}>{section}</div>
-            {items
-              .filter(item => !(item.path === '/ai-chat' && user?.role === 'gov-admin'))
-              .map(({ path, icon: Icon, label, color, darkColor }) => {
+            {items.map(({ path, icon: Icon, label, color, darkColor }) => {
               const c = isDark ? darkColor : color;
               const active = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
               return (
@@ -111,24 +102,6 @@ export default function Sidebar() {
                 </NavLink>
               );
             })}
-
-            {/* Admin link */}
-            {section === 'OVERVIEW' && user?.role === 'gov-admin' && (
-              <NavLink to="/admin" style={{ textDecoration: 'none' }}>
-                <motion.div
-                  style={{ ...S.navItem, background: location.pathname === '/admin' ? (isDark ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.1)') : 'transparent' }}
-                  whileHover={{ x: 2, background: 'rgba(99,102,241,0.08)' }}
-                >
-                  {location.pathname === '/admin' && <motion.div layoutId="navIndicator" style={{ position: 'absolute', left: 0, top: '18%', bottom: '18%', width: 3, borderRadius: '0 3px 3px 0', background: '#6366f1' }} />}
-                  <div style={{ ...S.navIcon, color: location.pathname === '/admin' ? '#6366f1' : theme.textMuted, background: location.pathname === '/admin' ? 'rgba(99,102,241,0.12)' : 'transparent' }}>
-                    <Settings size={15} />
-                  </div>
-                  <span style={{ ...S.navLabel, color: location.pathname === '/admin' ? theme.textPrimary : theme.textMuted, fontWeight: location.pathname === '/admin' ? 700 : 500 }}>
-                    Admin Panel
-                  </span>
-                </motion.div>
-              </NavLink>
-            )}
           </div>
         ))}
       </nav>
@@ -148,14 +121,14 @@ export default function Sidebar() {
           </motion.button>
         </div>
 
-        {/* User chip with profile/settings links */}
+        {/* User chip */}
         <div style={S.userChip}>
-          <motion.div style={S.avatar} whileHover={{ scale: 1.08 }} onClick={() => navigate('/profile')} title="View Profile" className="cursor-pointer">
-            {(user?.name || 'U')[0].toUpperCase()}
+          <motion.div style={S.avatar} whileHover={{ scale: 1.08 }}>
+            {(user?.name || 'A')[0].toUpperCase()}
           </motion.div>
           <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-            <div style={S.userName}>{user?.name || 'Citizen'}</div>
-            <div style={S.userRole}>{user?.role === 'gov-admin' ? '🏛 Admin' : '👤 Citizen'}</div>
+            <div style={S.userName}>{user?.name || 'PMC Admin'}</div>
+            <div style={S.userRole}>🏛 Government Admin</div>
           </div>
           <div style={{ display: 'flex', gap: 2 }}>
             <motion.button onClick={() => navigate('/settings')} style={S.iconAction} whileHover={{ scale: 1.15 }} title="Settings">
@@ -165,22 +138,6 @@ export default function Sidebar() {
               <LogOut size={12} />
             </motion.button>
           </div>
-        </div>
-
-        {/* Profile + Settings quick links */}
-        <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-          <NavLink to="/profile" style={{ textDecoration: 'none', flex: 1 }}>
-            <div style={{ ...S.quickLink, background: location.pathname === '/profile' ? 'rgba(99,102,241,0.1)' : 'transparent', borderColor: location.pathname === '/profile' ? 'rgba(99,102,241,0.2)' : theme.border }}>
-              <User size={10} color={location.pathname === '/profile' ? '#6366f1' : theme.textMuted} />
-              <span style={{ color: location.pathname === '/profile' ? '#6366f1' : theme.textMuted }}>Profile</span>
-            </div>
-          </NavLink>
-          <NavLink to="/settings" style={{ textDecoration: 'none', flex: 1 }}>
-            <div style={{ ...S.quickLink, background: location.pathname === '/settings' ? 'rgba(99,102,241,0.1)' : 'transparent', borderColor: location.pathname === '/settings' ? 'rgba(99,102,241,0.2)' : theme.border }}>
-              <Settings size={10} color={location.pathname === '/settings' ? '#6366f1' : theme.textMuted} />
-              <span style={{ color: location.pathname === '/settings' ? '#6366f1' : theme.textMuted }}>Settings</span>
-            </div>
-          </NavLink>
         </div>
       </div>
     </motion.div>

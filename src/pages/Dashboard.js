@@ -8,11 +8,9 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, 
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import { trendData, statusColor, paimanaSummary, ministryAnalytics, sectorAnalytics, stateAnalytics, physicalProgressAnalytics } from '../data/paimanaData';
 import { useProjects } from '../ProjectContext';
-import { useIssues } from '../IssueContext';
 import { useAuth } from '../AuthContext';
 import { useTheme } from '../ThemeContext';
 import StatusBadge from '../components/StatusBadge';
-import TrustScore from '../components/TrustScore';
 import { FloatingCard, CountUp, StaggerContainer, StaggerItem, ScrollReveal, TiltCard } from '../components/AnimatedPage';
 import { InfraMetricCard, InfraCard, InfraChip, InfraTelemetry } from '../components/InfraCard';
 import GlowButton from '../components/GlowButton';
@@ -60,7 +58,7 @@ const axisStyle = {
 };
 
 export default function Dashboard() {
-  const { issues } = useIssues();
+  const issues = [];
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
   const { projects } = useProjects();

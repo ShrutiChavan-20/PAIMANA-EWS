@@ -445,10 +445,8 @@ function AdminAuth({ onBack }) {
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────
+// ─── Main Admin-Only Login Page ──────────────────────────────
 export default function AuthPage() {
-  const [portal, setPortal] = useState(null);
-
   return (
     <>
       <style>{`
@@ -493,9 +491,7 @@ export default function AuthPage() {
           }
         }
       `}</style>
-      {portal === 'user' ? <UserAuth onBack={() => setPortal(null)} /> : 
-       portal === 'admin' ? <AdminAuth onBack={() => setPortal(null)} /> : 
-       <PortalSelector onSelect={setPortal} />}
+      <AdminAuth onBack={null} />
     </>
   );
 }

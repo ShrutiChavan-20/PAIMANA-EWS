@@ -4,7 +4,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, 
 import { Bar, Line, Doughnut, Radar, PolarArea } from 'react-chartjs-2';
 import { trendData, paimanaSummary, sectorAnalytics, ministryAnalytics, stateAnalytics } from '../data/paimanaData';
 import { useProjects } from '../ProjectContext';
-import { useIssues } from '../IssueContext';
 import { useTheme } from '../ThemeContext';
 import { FloatingCard, AnimatedPage, CountUp, StaggerContainer, StaggerItem } from '../components/AnimatedPage';
 
@@ -17,7 +16,7 @@ const tooltipStyle = { backgroundColor: '#0f1629', titleColor: '#e2e8f0', bodyCo
 const axisStyle = { grid: { color: 'rgba(99,140,255,0.06)', drawBorder: false }, ticks: { color: SLATE, font: { family: "'JetBrains Mono',monospace", size: 10 } } };
 
 export default function AnalyticsPage() {
-  const { issues } = useIssues();
+  const issues = [];
   const { theme, isDark } = useTheme();
   const { projects } = useProjects();
 

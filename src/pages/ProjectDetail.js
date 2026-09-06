@@ -3,10 +3,7 @@ import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
 import { statusColor } from '../data/mockData';
 import { useProjects } from '../ProjectContext';
-import { useIssues } from '../IssueContext';
 import StatusBadge from '../components/StatusBadge';
-import TrustScore from '../components/TrustScore';
-import BeforeAfterSlider from '../components/BeforeAfterSlider';
 import { AnimatedPage, FloatingCard, CountUp, StaggerContainer, StaggerItem } from '../components/AnimatedPage';
 import { useTheme } from '../ThemeContext';
 import GlowButton from '../components/GlowButton';
@@ -14,13 +11,12 @@ import { ArrowLeft, MapPin, Calendar, User, IndianRupee, AlertTriangle } from 'l
 
 export default function ProjectDetail() {
   const { id } = useParams();
-  const { issues } = useIssues();
   const { projects } = useProjects();
   const { theme, isDark } = useTheme();
   
   const p = projects.find(x => x.id === parseInt(id) || x.id === id);
   if (!p) return <AnimatedPage style={{padding:'2rem',color:theme.textMuted}}>Project not found.</AnimatedPage>;
-  const projIssues = issues.filter(i => i.projectId === p.id);
+  const projIssues = [];
   const S = getStyles(theme, isDark);
 
   return (
@@ -57,7 +53,7 @@ export default function ProjectDetail() {
                 </div>
                 <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
                   <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'0.6rem',color:theme.textMuted,fontWeight:600}}>TRUST / HEALTH</span>
-                  <TrustScore score={p.trustScore} size="lg"/>
+                  <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 800, fontSize: '1.2rem', color: '#6366f1' }}>{p.trustScore}%</span>
                 </div>
               </div>
               <StatusBadge status={p.status}/>
@@ -152,9 +148,6 @@ export default function ProjectDetail() {
                   <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'0.65rem',color:theme.textMuted,fontWeight:600}}>REVISED DOC: {p.revisedDoC || p.endDate}</span>
                 </div>
               </motion.div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <BeforeAfterSlider projectId={p.id} status={p.status} />
-              </div>
             </div>
           </FloatingCard>
         </motion.div>
@@ -182,11 +175,6 @@ export default function ProjectDetail() {
                         <span>{issue.date}</span>
                         <span style={{color:issue.severity==='high'?'#fb7185':issue.severity==='medium'?'#fbbf24':'#10b981',fontWeight:800}}>{issue.severity.toUpperCase()}</span>
                       </div>
-                      {issue.status === 'resolved' && (
-                        <div style={{ marginTop: '0.75rem' }}>
-                          <BeforeAfterSlider projectId={issue.id} status={issue.status} isAdmin={false} />
-                        </div>
-                      )}
                     </div>
                   </StaggerItem>
                 ))}

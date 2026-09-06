@@ -4,13 +4,10 @@ import { useAuth } from '../AuthContext';
 import { useTheme } from '../ThemeContext';
 import { statusColor } from '../data/mockData';
 import { useProjects } from '../ProjectContext';
-import { useIssues } from '../IssueContext';
 import StatusBadge from '../components/StatusBadge';
-import TrustScore from '../components/TrustScore';
 import { AnimatedPage, FloatingCard, CountUp, StaggerContainer, StaggerItem } from '../components/AnimatedPage';
 import GlowButton from '../components/GlowButton';
 import { Lock, CheckCircle, Eye, RefreshCw, X } from 'lucide-react';
-import BeforeAfterSlider from '../components/BeforeAfterSlider';
 
 const fundItems = [
   {name:'NH-48 Road Widening',budget:42,used:28.5,progress:68},
@@ -20,15 +17,11 @@ const fundItems = [
   {name:'Katraj Road',budget:8,used:5.2,progress:22},
 ];
 
-// Thin wrapper — delegates to BeforeAfterSlider with isAdmin=true
-const BeforeAfterTimeline = ({ targetId, status }) => (
-  <BeforeAfterSlider projectId={targetId} status={status} isAdmin={true} />
-);
-
 export default function AdminPage() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
-  const { issues, updateIssue } = useIssues();
+  const issues = [];
+  const updateIssue = () => {};
   const { projects, updateProject } = useProjects();
   const [activeTab, setActiveTab] = useState('overview');
   const [toast, setToast] = useState('');
@@ -557,7 +550,7 @@ export default function AdminPage() {
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
                         <StatusBadge status={vp.status}/>
                         <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                          <TrustScore score={vp.trustScore} size="md"/>
+                          <span style={{ fontSize: '0.85rem', color: '#6366f1', fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>Score: {vp.trustScore}%</span>
                           <button onClick={() => { setViewProject(null); openUpdate(vp); }}
                             style={{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:8,background:'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',color:'white',cursor:'pointer',fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:700,fontSize:'0.75rem',boxShadow:'0 4px 14px rgba(99,102,241,0.3)'}}>
                             <RefreshCw size={12}/> Update Project

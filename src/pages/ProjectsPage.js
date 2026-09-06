@@ -3,21 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { statusColor } from '../data/mockData';
 import { useProjects } from '../ProjectContext';
-import { useIssues } from '../IssueContext';
 import { useTheme } from '../ThemeContext';
 import StatusBadge from '../components/StatusBadge';
-import TrustScore from '../components/TrustScore';
 import { FloatingCard, StaggerContainer, StaggerItem } from '../components/AnimatedPage';
 import GlowButton from '../components/GlowButton';
 import { MapPin, Calendar, Plus, X, Search, Filter, AlertTriangle, TrendingUp, IndianRupee, Layers } from 'lucide-react';
 
 const SECTORS = ['All Sectors', 'Aviation & Aviation Infrastructure', 'Railways', 'Roads & Highways', 'Power', 'Coal', 'Oil & Gas'];
+const CATEGORIES = ['Roads & Highways', 'Railways', 'Aviation & Aviation Infrastructure', 'Power', 'Coal', 'Oil & Gas', 'Urban Infrastructure'];
 const STATUSES = ['All Statuses', 'critical', 'delayed', 'on-track'];
 const MINISTRIES = ['All Ministries', 'Ministry of Civil Aviation', 'Ministry of Railways', 'Ministry of Road Transport & Highways', 'Ministry of Power', 'Ministry of Petroleum & Natural Gas', 'Ministry of Coal'];
+const FORM_MINISTRIES = ['Ministry of Road Transport & Highways', 'Ministry of Railways', 'Ministry of Civil Aviation', 'Ministry of Power', 'Ministry of Petroleum & Natural Gas', 'Ministry of Coal'];
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
-  const { issues } = useIssues();
   const { theme, isDark } = useTheme();
   const { projects, addProject } = useProjects();
   const [showNew, setShowNew] = useState(false);
@@ -30,8 +29,23 @@ export default function ProjectsPage() {
   const [selectedMinistry, setSelectedMinistry] = useState('All Ministries');
 
   const [form, setForm] = useState({
-    title: '', category: 'Roads & Highways', location: '', status: 'on-track',
-    budget: '', contractor: '', startDate: '', endDate: '', description: '', progress: 0,
+    projectCode: `PAI-${Math.floor(100000 + Math.random() * 900000)}`,
+    title: '',
+    ministry: 'Ministry of Road Transport and Highways',
+    category: 'Roads & Highways',
+    state: 'Maharashtra',
+    location: '',
+    agency: 'NHAI',
+    contractor: '',
+    originalCostCr: '',
+    revisedCostCr: '',
+    spentCr: '',
+    physicalProgress: 0,
+    financialProgress: 0,
+    status: 'on-track',
+    targetDoC: new Date().toISOString().split('T')[0],
+    revisedDoC: new Date().toISOString().split('T')[0],
+    description: '',
   });
 
   const filteredProjects = useMemo(() => {
@@ -54,10 +68,46 @@ export default function ProjectsPage() {
 
   const handleCreate = () => {
     if (!form.title.trim() || !form.location.trim()) return;
-    const created = addProject(form);
+    const origCost = Number(form.originalCostCr) || 0;
+    const revCost = Number(form.revisedCostCr) || origCost;
+    const spent = Number(form.spentCr) || 0;
+    const costOverrunCr = Math.max(0, revCost - origCost);
+    const costOverrunPct = origCost > 0 ? Math.round((costOverrunCr / origCost) * 100) : 0;
+    const physProg = Number(form.physicalProgress) || 0;
+    const finProg = Number(form.financialProgress) || physProg;
+    const divergenceGap = finProg - physProg;
+    const trustScore = Math.max(30, Math.min(98, Math.round(100 - (costOverrunPct * 0.45 + Math.max(0, divergenceGap) * 0.5))));
+    const riskScore = 100 - trustScore;
+
+    const newProject = {
+      ...form,
+      projectCode: form.projectCode || `PAI-${Math.floor(100000 + Math.random() * 900000)}`,
+      originalCostCr: origCost,
+      revisedCostCr: revCost,
+      spentCr: spent,
+      budget: `₹${revCost || origCost} Cr`,
+      spent: `₹${spent} Cr`,
+      progress: physProg,
+      physicalProgress: physProg,
+      financialProgress: finProg,
+      costOverrunCr,
+      costOverrunPct,
+      divergenceGap,
+      trustScore,
+      riskScore,
+      delayMonths: form.status === 'critical' ? 28 : form.status === 'delayed' ? 14 : 0,
+    };
+
+    const created = addProject(newProject);
     setShowNew(false);
-    setForm({ title: '', category: 'Roads & Highways', location: '', status: 'on-track', budget: '', contractor: '', startDate: '', endDate: '', description: '', progress: 0 });
-    setSuccessMsg(`✓ "${created.title}" added successfully`);
+    setForm({
+      projectCode: `PAI-${Math.floor(100000 + Math.random() * 900000)}`,
+      title: '', ministry: 'Ministry of Road Transport and Highways', category: 'Roads & Highways',
+      state: 'Maharashtra', location: '', agency: 'NHAI', contractor: '', originalCostCr: '',
+      revisedCostCr: '', spentCr: '', physicalProgress: 0, financialProgress: 0, status: 'on-track',
+      targetDoC: new Date().toISOString().split('T')[0], revisedDoC: new Date().toISOString().split('T')[0], description: ''
+    });
+    setSuccessMsg(`✓ CUF Entry "${created.title}" (${created.projectCode}) created successfully`);
     setTimeout(() => setSuccessMsg(''), 3500);
   };
 
@@ -86,9 +136,6 @@ export default function ProjectsPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Link to="/map" style={{ textDecoration: 'none' }}>
-            <GlowButton variant="glass" size="sm" icon={<MapPin size={14} />}>National Map</GlowButton>
-          </Link>
           <GlowButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setShowNew(true)}>Add CUF Entry</GlowButton>
         </div>
       </motion.div>
@@ -199,7 +246,7 @@ export default function ProjectsPage() {
                       </span>
                       <div style={S.catTag}>{p.category}</div>
                     </div>
-                    <TrustScore score={p.trustScore} size="sm" />
+                    <span style={{ fontSize: '0.7rem', color: '#6366f1', fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>Score: {p.trustScore}%</span>
                   </div>
 
                   {/* Project Title */}
@@ -283,36 +330,114 @@ export default function ProjectsPage() {
               style={{ width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', background: isDark ? 'rgba(10,16,36,0.99)' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 20, padding: '1.75rem', boxShadow: '0 32px 80px rgba(0,0,0,0.4)' }}>
 
               {/* Modal header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <div>
-                  <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.6rem', color: '#6366f1', marginBottom: 4 }}>ADMIN PORTAL</div>
-                  <h2 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1.2rem', color: theme.textPrimary, margin: 0 }}>New Infrastructure Project</h2>
+                  <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.6rem', color: '#6366f1', marginBottom: 4 }}>MoSPI IPMD CUF DATA ENTRY</div>
+                  <h2 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1.2rem', color: theme.textPrimary, margin: 0 }}>Add CUF Project Entry</h2>
                 </div>
                 <button onClick={() => setShowNew(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, padding: 4, borderRadius: 8, display: 'flex' }}>
                   <X size={20} />
                 </button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
 
-                {/* Title */}
-                <div>
-                  <label style={S.label}>Project Title *</label>
-                  <input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Koregaon Park Road Resurfacing"
-                    style={{ ...S.input(isDark, theme), borderColor: form.title ? '#6366f1' : theme.border }} />
+                {/* Code + Title */}
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 10 }}>
+                  <div>
+                    <label style={S.label}>Project Code</label>
+                    <input value={form.projectCode} readOnly
+                      style={{ ...S.input(isDark, theme), fontFamily: "'JetBrains Mono',monospace", color: '#6366f1', fontWeight: 700, background: isDark ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.05)' }} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Project Title *</label>
+                    <input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Pune Metro Line 3 Extension"
+                      style={{ ...S.input(isDark, theme), borderColor: form.title ? '#6366f1' : theme.border }} />
+                  </div>
                 </div>
 
-                {/* Category + Status row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {/* Ministry + Sector */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div>
-                    <label style={S.label}>Category</label>
+                    <label style={S.label}>Ministry</label>
+                    <select value={form.ministry} onChange={e => set('ministry', e.target.value)} style={S.input(isDark, theme)}>
+                      {FORM_MINISTRIES.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={S.label}>Sector / Category</label>
                     <select value={form.category} onChange={e => set('category', e.target.value)} style={S.input(isDark, theme)}>
                       {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
+                </div>
+
+                {/* State + Location */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 10 }}>
                   <div>
-                    <label style={S.label}>Initial Status</label>
-                    <div style={{ display: 'flex', gap: 5, marginTop: 6 }}>
+                    <label style={S.label}>State</label>
+                    <input value={form.state} onChange={e => set('state', e.target.value)} placeholder="e.g. Maharashtra"
+                      style={S.input(isDark, theme)} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Location / Corridor *</label>
+                    <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Hinjewadi to Shivajinagar, Pune"
+                      style={{ ...S.input(isDark, theme), borderColor: form.location ? '#6366f1' : theme.border }} />
+                  </div>
+                </div>
+
+                {/* Agency + Contractor */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={S.label}>Implementing Agency</label>
+                    <input value={form.agency} onChange={e => set('agency', e.target.value)} placeholder="e.g. PMRDA / MHA"
+                      style={S.input(isDark, theme)} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Executing Contractor</label>
+                    <input value={form.contractor} onChange={e => set('contractor', e.target.value)} placeholder="e.g. Tata Infra Ltd"
+                      style={S.input(isDark, theme)} />
+                  </div>
+                </div>
+
+                {/* Costs */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  <div>
+                    <label style={S.label}>Sanctioned Cost (₹ Cr)</label>
+                    <input type="number" value={form.originalCostCr} onChange={e => set('originalCostCr', e.target.value)} placeholder="1200"
+                      style={S.input(isDark, theme)} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Revised Cost (₹ Cr)</label>
+                    <input type="number" value={form.revisedCostCr} onChange={e => set('revisedCostCr', e.target.value)} placeholder="1450"
+                      style={S.input(isDark, theme)} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Spent to Date (₹ Cr)</label>
+                    <input type="number" value={form.spentCr} onChange={e => set('spentCr', e.target.value)} placeholder="820"
+                      style={S.input(isDark, theme)} />
+                  </div>
+                </div>
+
+                {/* Physical vs Financial Progress */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={S.label}>Physical Progress: {form.physicalProgress}%</label>
+                    <input type="range" min={0} max={100} value={form.physicalProgress} onChange={e => set('physicalProgress', e.target.value)}
+                      style={{ width: '100%', accentColor: '#6366f1', cursor: 'pointer' }} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Financial Progress: {form.financialProgress}%</label>
+                    <input type="range" min={0} max={100} value={form.financialProgress} onChange={e => set('financialProgress', e.target.value)}
+                      style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }} />
+                  </div>
+                </div>
+
+                {/* Status + Target DoC */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={S.label}>Project Status</label>
+                    <div style={{ display: 'flex', gap: 5, marginTop: 4 }}>
                       {STATUSES.map(s => (
                         <button key={s} onClick={() => set('status', s)}
                           style={{ flex: 1, padding: '7px 4px', borderRadius: 8, border: `1.5px solid ${form.status === s ? statusColor[s] : theme.border}`, background: form.status === s ? `${statusColor[s]}15` : 'transparent', color: form.status === s ? statusColor[s] : theme.textMuted, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 600, fontSize: '0.62rem', transition: 'all 0.2s' }}>
@@ -321,70 +446,30 @@ export default function ProjectsPage() {
                       ))}
                     </div>
                   </div>
-                </div>
-
-                {/* Location */}
-                <div>
-                  <label style={S.label}>Location *</label>
-                  <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Koregaon Park, Pune"
-                    style={{ ...S.input(isDark, theme), borderColor: form.location ? '#6366f1' : theme.border }} />
-                </div>
-
-                {/* Budget + Contractor */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={S.label}>Budget</label>
-                    <input value={form.budget} onChange={e => set('budget', e.target.value)} placeholder="₹20 Cr"
+                    <label style={S.label}>Target Completion Date (DoC)</label>
+                    <input type="date" value={form.targetDoC} onChange={e => set('targetDoC', e.target.value)}
                       style={S.input(isDark, theme)} />
-                  </div>
-                  <div>
-                    <label style={S.label}>Contractor</label>
-                    <input value={form.contractor} onChange={e => set('contractor', e.target.value)} placeholder="PMC Roads Dept"
-                      style={S.input(isDark, theme)} />
-                  </div>
-                </div>
-
-                {/* Dates */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={S.label}>Start Date</label>
-                    <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)}
-                      style={S.input(isDark, theme)} />
-                  </div>
-                  <div>
-                    <label style={S.label}>End Date</label>
-                    <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)}
-                      style={S.input(isDark, theme)} />
-                  </div>
-                </div>
-
-                {/* Progress slider */}
-                <div>
-                  <label style={S.label}>Initial Progress: {form.progress}%</label>
-                  <input type="range" min={0} max={100} value={form.progress} onChange={e => set('progress', e.target.value)}
-                    style={{ width: '100%', accentColor: '#6366f1', cursor: 'pointer', marginTop: 4 }} />
-                  <div style={{ height: 5, background: isDark ? 'rgba(99,140,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 3, overflow: 'hidden', marginTop: 6 }}>
-                    <div style={{ height: '100%', width: `${form.progress}%`, background: statusColor[form.status], borderRadius: 3, transition: 'width 0.15s' }} />
                   </div>
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label style={S.label}>Description</label>
+                  <label style={S.label}>Scope & Key Milestones</label>
                   <textarea value={form.description} onChange={e => set('description', e.target.value)}
-                    placeholder="Brief description of the project scope..." rows={3}
-                    style={{ ...S.input(isDark, theme), resize: 'vertical', fontFamily: "'Inter',sans-serif", lineHeight: 1.6 }} />
+                    placeholder="Brief description of the CUF project scope, land acquisition, and key bottlenecks..." rows={2}
+                    style={{ ...S.input(isDark, theme), resize: 'vertical', fontFamily: "'Inter',sans-serif", lineHeight: 1.5 }} />
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                   <button onClick={() => setShowNew(false)}
-                    style={{ flex: 1, padding: '11px', borderRadius: 11, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textMuted, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s' }}>
+                    style={{ flex: 1, padding: '10px', borderRadius: 11, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textMuted, cursor: 'pointer', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 600, fontSize: '0.85rem' }}>
                     Cancel
                   </button>
                   <button onClick={handleCreate} disabled={!isValid}
-                    style={{ flex: 2, padding: '11px', borderRadius: 11, border: 'none', background: isValid ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : (isDark ? 'rgba(99,140,255,0.1)' : 'rgba(99,102,241,0.08)'), color: isValid ? 'white' : theme.textMuted, cursor: isValid ? 'pointer' : 'not-allowed', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.85rem', boxShadow: isValid ? '0 4px 20px rgba(99,102,241,0.35)' : 'none', transition: 'all 0.25s' }}>
-                    + Create Project
+                    style={{ flex: 2, padding: '10px', borderRadius: 11, border: 'none', background: isValid ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : (isDark ? 'rgba(99,140,255,0.1)' : 'rgba(99,102,241,0.08)'), color: isValid ? 'white' : theme.textMuted, cursor: isValid ? 'pointer' : 'not-allowed', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.85rem', boxShadow: isValid ? '0 4px 20px rgba(99,102,241,0.35)' : 'none' }}>
+                    + Save CUF Entry
                   </button>
                 </div>
               </div>

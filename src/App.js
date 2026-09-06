@@ -5,19 +5,12 @@ import { useAuth } from './AuthContext';
 import { ThemeProvider, useTheme } from './ThemeContext';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
-import AIChatbot from './components/AIChatbot';
 import AuthPage from './pages/AuthPage';
-import MapPage from './pages/MapPage';
 import Dashboard from './pages/Dashboard';
 import ProjectsPage from './pages/ProjectsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import IssuesPage from './pages/IssuesPage';
-import ReportPage from './pages/ReportPage';
-import TrustPage from './pages/TrustPage';
 import AdminPage from './pages/AdminPage';
 import ProjectDetail from './pages/ProjectDetail';
-import AIChatPage from './pages/AIChatPage';
-import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import PublicationsPage from './pages/PublicationsPage';
 import PredictiveModelPage from './pages/PredictiveModelPage';
@@ -27,19 +20,12 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Root shows Dashboard, Map is /map */}
         <Route path="/" element={<Dashboard />} />
-        <Route path="/map" element={<MapPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/project/:id" element={<ProjectDetail />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/issues" element={<IssuesPage />} />
-        <Route path="/report" element={<ReportPage />} />
-        <Route path="/trust" element={<TrustPage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/ai-chat" element={<AIChatPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/publications" element={<PublicationsPage />} />
         <Route path="/predict" element={<PredictiveModelPage />} />
@@ -50,7 +36,7 @@ function AnimatedRoutes() {
 }
 
 function AppLayout() {
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const { theme, isDark } = useTheme();
 
@@ -60,7 +46,7 @@ function AppLayout() {
       background: theme.bg,
       transition: 'background 0.4s ease',
     }}>
-      <Sidebar user={user} onLogout={logout} onRoleSwitch={switchRole} />
+      <Sidebar user={user} onLogout={logout} />
 
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
@@ -169,9 +155,6 @@ function AppLayout() {
           </div>
         </div>
       </div>
-      {/* AI Chatbot - only visible to citizen users, NOT gov-admin */}
-      {user?.role !== 'gov-admin' && <AIChatbot />}
-
     </div>
   );
 }
