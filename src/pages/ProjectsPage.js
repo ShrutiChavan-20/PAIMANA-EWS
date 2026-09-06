@@ -24,6 +24,7 @@ export default function ProjectsPage() {
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedState, setSelectedState] = useState('All States');
   const [selectedSector, setSelectedSector] = useState('All Sectors');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');
   const [selectedMinistry, setSelectedMinistry] = useState('All Ministries');

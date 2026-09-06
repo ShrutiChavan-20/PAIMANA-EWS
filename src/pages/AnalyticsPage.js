@@ -313,7 +313,7 @@ export default function AnalyticsPage() {
       </motion.div>
 
       {/* ── City & State Location Filter Controls ── */}
-      <FloatingCard style={{ ...S.filterBar, background: isDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.85)' }}>
+      <FloatingCard style={{ ...S.filterBar, background: isDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <MapPin size={16} color={BLUE} />
@@ -366,9 +366,9 @@ export default function AnalyticsPage() {
                 width: '100%',
                 padding: '8px 12px 8px 34px',
                 borderRadius: 10,
-                background: isDark ? 'rgba(30,41,59,0.7)' : '#ffffff',
-                border: `1px solid ${theme.border}`,
-                color: theme.textPrimary,
+                background: isDark ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.90)',
+                border: `1px solid ${isDark ? theme.border : 'rgba(255,255,255,0.60)'}`,
+                color: isDark ? theme.textPrimary : '#0f2042',
                 fontSize: '0.82rem',
                 outline: 'none',
                 fontFamily: "'Plus Jakarta Sans',sans-serif"
@@ -388,9 +388,9 @@ export default function AnalyticsPage() {
                 width: '100%',
                 padding: '8px 14px',
                 borderRadius: 10,
-                background: isDark ? 'rgba(30,41,59,0.7)' : '#ffffff',
-                border: `1px solid ${theme.border}`,
-                color: theme.textPrimary,
+                background: isDark ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.90)',
+                border: `1px solid ${isDark ? theme.border : 'rgba(255,255,255,0.60)'}`,
+                color: isDark ? theme.textPrimary : '#0f2042',
                 fontSize: '0.82rem',
                 outline: 'none',
                 cursor: 'pointer',

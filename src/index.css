@@ -5,29 +5,29 @@
    Default: light. Dark activated by [data-theme="dark"]
 ══════════════════════════════════════════════════════ */
 :root {
-  /* ── Light Surfaces ──────────────────────────────── */
-  --bg:              #f4f6fb;
-  --bg2:             #edf0f7;
-  --surface:         rgba(255,255,255,0.9);
-  --surface2:        rgba(248,249,253,0.92);
-  --surface-solid:   #ffffff;
-  --glass:           rgba(255,255,255,0.72);
-  --glass-border:    rgba(99,102,241,0.12);
-  --glass-glow:      rgba(99,102,241,0.07);
-  --border:          rgba(0,0,0,0.07);
-  --border2:         rgba(99,102,241,0.2);
+  /* ── Light Surfaces — White page bg, Blue floating cards ──────────────── */
+  --bg:              #ffffff;
+  --bg2:             #f4f7ff;
+  --surface:         rgba(99,140,255,0.92);
+  --surface2:        #eef2ff;
+  --surface-solid:   #638cff;
+  --glass:           rgba(99,140,255,0.80);
+  --glass-border:    rgba(255,255,255,0.55);
+  --glass-glow:      rgba(99,140,255,0.20);
+  --border:          rgba(99,140,255,0.25);
+  --border2:         rgba(29,78,216,0.20);
 
-  /* ── Light Accents ───────────────────────────────── */
-  --blue:            #6366f1;
-  --blue-dark:       #4338ca;
-  --blue-mid:        #4f46e5;
-  --blue-light:      #818cf8;
-  --blue-pale:       rgba(99,102,241,0.12);
-  --blue-xpale:      rgba(99,102,241,0.06);
-  --cyan:            #06b6d4;
-  --purple:          #8b5cf6;
-  --violet:          #7c3aed;
-  --magenta:         #d946ef;
+  /* ── Light Accents — Royal Blue, Amber Gold, Periwinkle ───────────────── */
+  --blue:            #1d4ed8;
+  --blue-dark:       #1e3a8a;
+  --blue-mid:        #2563eb;
+  --blue-light:      #60a5fa;
+  --blue-pale:       rgba(37,99,235,0.12);
+  --blue-xpale:      rgba(37,99,235,0.06);
+  --cyan:            #0284c7;
+  --purple:          #4f46e5;
+  --violet:          #4338ca;
+  --magenta:         #ec4899;
   --red:             #f43f5e;
   --yellow:          #f59e0b;
   --amber:           #fbbf24;
@@ -35,40 +35,40 @@
   --emerald:         #34d399;
 
   /* ── Light Text ──────────────────────────────────── */
-  --text:            #1a1b25;
-  --text2:           #4648d4;
-  --text-bright:     #0f172a;
-  --muted:           #6b7280;
-  --muted2:          #9ca3af;
+  --text:            #0f2042;
+  --text2:           #1d4ed8;
+  --text-bright:     #051129;
+  --muted:           #6277a1;
+  --muted2:          #8fa2cc;
 
   /* ── Typography ──────────────────────────────────── */
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-body:    'Inter', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 
-  /* ── Light Shadows ───────────────────────────────── */
-  --shadow:          0 2px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-lg:       0 8px 40px rgba(0,0,0,0.10), 0 0 0 1px rgba(99,102,241,0.08);
-  --shadow-glow:     0 0 24px rgba(99,102,241,0.14);
-  --shadow-glow-lg:  0 0 50px rgba(99,102,241,0.22);
-  --shadow-neon:     0 4px 20px rgba(99,102,241,0.12), 0 0 0 1px rgba(99,102,241,0.08);
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-hover:    0 8px 30px rgba(0,0,0,0.10), 0 0 0 1px rgba(99,102,241,0.12);
+  /* ── Light Shadows — Deep Soft Pillowy Blue Elevation ───────────────── */
+  --shadow:          0 8px 24px rgba(18,48,125,0.10), 0 0 0 1px rgba(255,255,255,0.6) inset;
+  --shadow-lg:       0 18px 45px rgba(18,48,125,0.18), 0 0 0 1px rgba(255,255,255,0.7) inset;
+  --shadow-glow:     0 0 24px rgba(99,140,255,0.30);
+  --shadow-glow-lg:  0 0 50px rgba(99,140,255,0.45);
+  --shadow-neon:     0 8px 25px rgba(29,78,216,0.30);
+  --shadow-card:     0 12px 32px rgba(18,48,125,0.18), 0 2px 6px rgba(99,140,255,0.20);
+  --shadow-hover:    0 22px 50px rgba(18,48,125,0.26), 0 0 0 1px rgba(255,255,255,0.30);
 
   /* ── Light Gradients ─────────────────────────────── */
-  --gradient-primary:  linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
-  --gradient-accent:   linear-gradient(135deg, #06b6d4, #6366f1);
+  --gradient-primary:  linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  --gradient-accent:   linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
   --gradient-warm:     linear-gradient(135deg, #f59e0b, #f43f5e);
-  --gradient-surface:  linear-gradient(135deg, rgba(255,255,255,0.95), rgba(242,243,252,0.8));
-  --gradient-sidebar:  linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
-  --gradient-neon:     linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4, #d946ef);
-  --gradient-hero:     linear-gradient(135deg, #eef2ff 0%, #f4f6fb 50%, #faf5ff 100%);
+  --gradient-surface:  linear-gradient(135deg, #638cff 0%, #5b82f6 100%);
+  --gradient-sidebar:  linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+  --gradient-neon:     linear-gradient(135deg, #1d4ed8, #3b82f6, #f59e0b);
+  --gradient-hero:     linear-gradient(135deg, #6b90ff 0%, #5b82f6 100%);
 
-  /* ── Card tokens ─────────────────────────────────── */
-  --card-bg:       #ffffff;
+  /* ── Card tokens ───────────────────────────────── */
+  --card-bg:       #638cff;
   --card-shadow:   var(--shadow-card);
-  --sidebar-bg:    #ffffff;
-  --topbar-bg:     rgba(255,255,255,0.92);
+  --sidebar-bg:    rgba(255,255,255,0.97);
+  --topbar-bg:     rgba(255,255,255,0.96);
 }
 
 /* ══════════════════════════════════════════════════════

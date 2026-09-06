@@ -259,11 +259,11 @@ export default function Topbar({ user: propUser }) {
               width: searchFocused ? 300 : 210,
             }}
             transition={{ duration: 0.28 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: isDark ? 'rgba(10,16,36,0.7)' : '#f2f3f7', border: `1px solid ${theme.border}`, borderRadius: 10, padding: '7px 12px', overflow: 'hidden', cursor: 'text', transition: 'background 0.3s' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: isDark ? 'rgba(10,16,36,0.7)' : 'rgba(255,255,255,0.85)', border: `1px solid ${theme.border}`, borderRadius: 14, padding: '8px 14px', overflow: 'hidden', cursor: 'text', transition: 'background 0.3s, box-shadow 0.3s', backdropFilter: 'blur(12px)' }}
           >
-            <Search size={13} color={searchFocused ? meta.color : theme.textMuted} style={{ flexShrink: 0, transition: 'color 0.25s' }} />
+            <Search size={14} color={searchFocused ? meta.color : theme.textMuted} style={{ flexShrink: 0, transition: 'color 0.25s' }} />
             <input
-              style={{ border: 'none', background: 'none', outline: 'none', fontFamily: "'Inter', sans-serif", fontSize: '0.8rem', color: theme.textPrimary, width: '100%', minWidth: 0 }}
+              style={{ border: 'none', background: 'none', outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '0.82rem', color: theme.textPrimary, width: '100%', minWidth: 0 }}
               placeholder="Search projects, issues..."
               value={searchVal}
               onChange={e => setSearchVal(e.target.value)}

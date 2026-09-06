@@ -73,7 +73,7 @@ export function ProjectProvider({ children }) {
   };
 
   return (
-    <ProjectContext.Provider value={{ projects, addProject, updateProject, resetToDefaults }}>
+    <ProjectContext.Provider value={{ projects, setProjects, addProject, updateProject, resetToDefaults }}>
       {children}
     </ProjectContext.Provider>
   );

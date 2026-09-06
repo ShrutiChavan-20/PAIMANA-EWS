@@ -196,21 +196,21 @@ export default function Dashboard() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} style={{ background: isDark ? '#070d1e' : '#f4f6f9', minHeight: '100vh', paddingBottom: '3rem' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} style={{ background: isDark ? '#070d1e' : '#ffffff', minHeight: '100vh', paddingBottom: '3rem' }}>
 
       {/* ── 1. Top Institutional Branding Header (Official Government Style) ── */}
-      <div style={{ background: isDark ? '#0b1329' : '#ffffff', borderBottom: `1px solid ${theme.border}`, padding: '10px 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ background: isDark ? '#0b1329' : '#638cff', borderBottom: `1px solid ${theme.border}`, padding: '10px 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         
         {/* Left: Emblem & Ministry Name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 38, height: 38, borderRadius: '50%', background: isDark ? 'rgba(255,255,255,0.08)' : '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${theme.border}` }}>
+          <div style={{ width: 38, height: 38, borderRadius: '50%', background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${theme.border}` }}>
             <span style={{ fontSize: '1.3rem' }}>🏛️</span>
           </div>
           <div>
-            <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '0.86rem', color: theme.textPrimary, letterSpacing: '-0.01em' }}>
+            <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '0.86rem', color: isDark ? theme.textPrimary : '#ffffff', letterSpacing: '-0.01em' }}>
               Ministry of Statistics and Programme Implementation
             </div>
-            <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: theme.textMuted }}>
+            <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: isDark ? theme.textMuted : 'rgba(255,255,255,0.80)' }}>
               Government of India · Infrastructure & Project Monitoring Division (IPMD)
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function Dashboard() {
 
           {/* Filter Bar Row */}
           <div style={{
-            background: isDark ? '#0b1329' : '#ffffff',
+            background: isDark ? '#0b1329' : '#638cff',
             border: `1px solid ${theme.border}`,
             borderRadius: 10,
             padding: '12px 14px',
@@ -836,7 +836,7 @@ const filterLabelStyle = {
   fontFamily: "'Plus Jakarta Sans',sans-serif",
   fontSize: '0.68rem',
   fontWeight: 600,
-  color: '#64748b',
+  color: 'rgba(255,255,255,0.85)',
   marginBottom: 4,
   display: 'block',
 };
@@ -845,8 +845,8 @@ const filterSelectStyle = (isDark) => ({
   width: '100%',
   height: 36,
   borderRadius: 8,
-  border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1'}`,
-  background: isDark ? '#070d1e' : '#ffffff',
+  border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.60)'}`,
+  background: isDark ? '#070d1e' : 'rgba(255,255,255,0.90)',
   color: isDark ? '#f8fafc' : '#0f172a',
   fontFamily: "'Inter',sans-serif",
   fontSize: '0.75rem',
@@ -855,16 +855,16 @@ const filterSelectStyle = (isDark) => ({
 });
 
 const cardBoxStyle = (isDark) => ({
-  background: isDark ? '#0b1329' : '#ffffff',
-  border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+  background: isDark ? '#0b1329' : '#638cff',
+  border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.30)'}`,
   borderRadius: 14,
   overflow: 'hidden',
-  boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
+  boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.2)' : '0 8px 24px rgba(18,48,125,0.18)',
 });
 
 const cardHeaderStyle = (isDark) => ({
   padding: '12px 16px',
-  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'}`,
+  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.25)'}`,
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -884,7 +884,7 @@ const exportBadgeStyle = (color, isDark) => ({
 
 const toggleContainerStyle = (isDark) => ({
   display: 'flex',
-  background: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+  background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.20)',
   borderRadius: 8,
   padding: 2,
 });
@@ -893,8 +893,8 @@ const toggleBtnStyle = (active, isDark) => ({
   padding: '4px 12px',
   borderRadius: 6,
   border: 'none',
-  background: active ? '#475569' : 'transparent',
-  color: active ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
+  background: active ? (isDark ? '#475569' : 'rgba(255,255,255,0.80)') : 'transparent',
+  color: active ? (isDark ? '#ffffff' : '#1d4ed8') : (isDark ? '#94a3b8' : 'rgba(255,255,255,0.75)'),
   fontSize: '0.68rem',
   fontWeight: 700,
   cursor: 'pointer',
@@ -909,8 +909,8 @@ const tableStyle = {
 };
 
 const thRowStyle = (isDark) => ({
-  background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`,
+  background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.15)',
+  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.30)'}`,
   position: 'sticky',
   top: 0,
   zIndex: 1,
@@ -922,13 +922,13 @@ const thStyle = {
   fontFamily: "'JetBrains Mono', monospace",
   fontSize: '0.6rem',
   textTransform: 'uppercase',
-  color: '#64748b',
+  color: 'rgba(255,255,255,0.75)',
   letterSpacing: '0.04em',
 };
 
 const trStyle = (idx, isDark) => ({
-  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : '#f1f5f9'}`,
-  background: idx % 2 === 0 ? 'transparent' : (isDark ? 'rgba(255,255,255,0.015)' : '#fafafa'),
+  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.15)'}`,
+  background: idx % 2 === 0 ? 'transparent' : (isDark ? 'rgba(255,255,255,0.015)' : 'rgba(255,255,255,0.08)'),
 });
 
 const tdStyle = {

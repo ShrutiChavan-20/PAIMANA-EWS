@@ -2,7 +2,7 @@
 //  PredictiveModelPage — PAIMANA AI Predictive Suite
 //  Core SIH deliverable: Cost Overrun + Delay + Risk + Early Warning
 // ============================================================
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, RadialLinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip, Legend } from 'chart.js';
 import { Bar, Radar, Doughnut } from 'react-chartjs-2';
@@ -11,7 +11,7 @@ import { useProjects } from '../ProjectContext';
 import { InfraCard, InfraChip, InfraTelemetry } from '../components/InfraCard';
 import GlowButton from '../components/GlowButton';
 import { ScrollReveal } from '../components/AnimatedPage';
-import { Brain, TrendingUp, AlertTriangle, Zap, Calculator, Activity, IndianRupee, Clock, Shield, ChevronRight, Info, Cpu, RefreshCw } from 'lucide-react';
+import { Brain, TrendingUp, AlertTriangle, Zap, Calculator, Activity, IndianRupee, Clock, Shield, ChevronRight, Info, Cpu, RefreshCw, X, Download, FileText, MapPin, Building2 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, RadialLinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip, Legend);
 
@@ -96,6 +96,7 @@ export default function PredictiveModelPage() {
   const { theme, isDark } = useTheme();
   const { projects } = useProjects();
   const [activeTab, setActiveTab] = useState('cost');
+  const [reviewProject, setReviewProject] = useState(null);
 
   // Cost Overrun form
   const [costForm, setCostForm] = useState({ sector: 'Railways', originalCost: 5000, physicalProgress: 40, financialProgress: 65, delayMonths: 18, landAcq: 'Partial' });
@@ -116,6 +117,32 @@ export default function PredictiveModelPage() {
   const [evalRunCount, setEvalRunCount] = useState(1);
 
   const toggleFeature = (key) => setEnabledFeatures(p => ({ ...p, [key]: !p[key] }));
+
+  // ── Export Alert Report as CSV ──
+  const handleExportAlertReport = useCallback(() => {
+    const headers = ['Project', 'Ministry', 'Agency', 'State', 'Delay (mo)', 'Overrun %', 'Risk Score', 'Category', 'Alert Flag'];
+    const rows = EARLY_WARNING_PROJECTS.map(p => [
+      `"${p.title}"`,
+      `"${p.ministry}"`,
+      `"${p.agency}"`,
+      `"${p.state}"`,
+      p.delay,
+      p.overrun > 0 ? `+${p.overrun}%` : '0%',
+      p.risk,
+      p.category,
+      `"${p.flag}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `PAIMANA_EWS_Alert_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, []);
 
   const activeLift = useMemo(() => {
     let lift = 0;
@@ -155,12 +182,12 @@ export default function PredictiveModelPage() {
 
   const inputStyle = {
     width: '100%', padding: '8px 12px',
-    borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)'}`,
-    background: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
-    color: theme.textPrimary, fontFamily: "'JetBrains Mono',monospace", fontSize: '0.8rem',
+    borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.60)'}`,
+    background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.90)',
+    color: isDark ? theme.textPrimary : '#0f2042', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.8rem',
     outline: 'none', boxSizing: 'border-box',
   };
-  const labelStyle = { fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted, marginBottom: 4, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' };
+  const labelStyle = { fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: isDark ? theme.textMuted : 'rgba(255,255,255,0.80)', marginBottom: 4, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' };
   const fieldStyle = { marginBottom: '0.75rem' };
 
   return (
@@ -482,7 +509,7 @@ export default function PredictiveModelPage() {
                 <InfraChip label="EARLY WARNING ACTIVE" color={RED} dot />
                 <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.58rem', color: theme.textMuted }}>{EARLY_WARNING_PROJECTS.filter(p => p.category === 'Critical').length} Critical · {EARLY_WARNING_PROJECTS.filter(p => p.category === 'Watchlist').length} Watchlist</span>
               </div>
-              <GlowButton variant="glass" size="sm" icon={<AlertTriangle size={12} />}>Export Alert Report</GlowButton>
+              <GlowButton variant="glass" size="sm" icon={<Download size={12} />} onClick={handleExportAlertReport}>Export Alert Report</GlowButton>
             </div>
             <InfraCard accentColor={RED} style={{ padding: '1.2rem' }}>
               <div style={{ overflowX: 'auto' }}>
@@ -524,7 +551,11 @@ export default function PredictiveModelPage() {
                             <span title={p.flag} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>⚠ {p.flag}</span>
                           </td>
                           <td style={{ padding: '9px 10px' }}>
-                            <motion.button whileHover={{ scale: 1.05 }} style={{ background: `${catColor}15`, border: `1px solid ${catColor}30`, color: catColor, borderRadius: 7, padding: '4px 10px', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              onClick={() => setReviewProject(p)}
+                              style={{ background: `${catColor}15`, border: `1px solid ${catColor}30`, color: catColor, borderRadius: 7, padding: '4px 10px', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                            >
                               Review →
                             </motion.button>
                           </td>
@@ -539,6 +570,127 @@ export default function PredictiveModelPage() {
         )}
 
         {/* ─── Tab 5: AI vs Stats & CUF Assessment (Technical Dimensions b & c) ─── */}
+      </AnimatePresence>
+
+      {/* ── Review Modal ── */}
+      <AnimatePresence>
+        {reviewProject && (
+          <motion.div
+            key="review-modal-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setReviewProject(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}
+          >
+            <motion.div
+              key="review-modal"
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: isDark ? '#0d1424' : '#f8faff',
+                border: `1px solid ${reviewProject.category === 'Critical' ? RED : YELLOW}40`,
+                borderRadius: 20,
+                padding: '1.6rem',
+                maxWidth: 580,
+                width: '100%',
+                boxShadow: `0 0 60px ${reviewProject.category === 'Critical' ? RED : YELLOW}20, 0 25px 60px rgba(0,0,0,0.4)`,
+                position: 'relative',
+              }}
+            >
+              {/* Modal Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem' }}>
+                <div style={{ flex: 1, paddingRight: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{
+                      background: `${reviewProject.category === 'Critical' ? RED : YELLOW}18`,
+                      color: reviewProject.category === 'Critical' ? RED : YELLOW,
+                      border: `1px solid ${reviewProject.category === 'Critical' ? RED : YELLOW}35`,
+                      borderRadius: 6, padding: '2px 9px',
+                      fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', fontWeight: 700
+                    }}>
+                      {reviewProject.category === 'Critical' ? '🔴' : '🟡'} {reviewProject.category}
+                    </span>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', color: theme.textMuted }}>
+                      Risk Score: <strong style={{ color: reviewProject.category === 'Critical' ? RED : YELLOW }}>{reviewProject.risk}/100</strong>
+                    </span>
+                  </div>
+                  <h2 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1.1rem', color: theme.textPrimary, lineHeight: 1.3 }}>
+                    {reviewProject.title}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setReviewProject(null)}
+                  style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: theme.textMuted, flexShrink: 0 }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Meta Info Row */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: '1.2rem' }}>
+                {[
+                  { icon: <Building2 size={11} />, label: reviewProject.ministry },
+                  { icon: <FileText size={11} />, label: reviewProject.agency },
+                  { icon: <MapPin size={11} />, label: reviewProject.state },
+                ].map(({ icon, label }) => (
+                  <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: 7, padding: '4px 10px', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.62rem', color: theme.textMuted, border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}` }}>
+                    {icon} {label}
+                  </span>
+                ))}
+              </div>
+
+              {/* KPI Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: '1.2rem' }}>
+                {[
+                  { label: 'Schedule Delay', value: `${reviewProject.delay} months`, color: reviewProject.delay > 36 ? RED : YELLOW },
+                  { label: 'Cost Overrun', value: reviewProject.overrun > 0 ? `+${reviewProject.overrun}%` : 'On Budget', color: reviewProject.overrun > 30 ? RED : reviewProject.overrun > 0 ? YELLOW : GREEN },
+                  { label: 'Risk Score', value: `${reviewProject.risk} / 100`, color: reviewProject.risk >= 70 ? RED : YELLOW },
+                ].map(({ label, value, color }) => (
+                  <div key={label} style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', borderRadius: 10, padding: '10px 12px', border: `1px solid ${color}20`, textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 800, fontSize: '1.05rem', color }}>{value}</div>
+                    <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.5rem', color: theme.textMuted, marginTop: 3 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Alert Flag */}
+              <div style={{ background: `${reviewProject.category === 'Critical' ? RED : YELLOW}0e`, border: `1px solid ${reviewProject.category === 'Critical' ? RED : YELLOW}30`, borderRadius: 10, padding: '10px 14px', marginBottom: '1rem' }}>
+                <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', color: theme.textMuted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Alert Flag</div>
+                <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.82rem', color: reviewProject.category === 'Critical' ? RED : YELLOW }}>⚠ {reviewProject.flag}</div>
+              </div>
+
+              {/* Recommended Action */}
+              <div style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', borderRadius: 10, padding: '10px 14px', marginBottom: '1.2rem', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+                <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.55rem', color: theme.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommended Action</div>
+                <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: '0.75rem', color: theme.textPrimary, lineHeight: 1.6 }}>
+                  {reviewProject.category === 'Critical'
+                    ? '🔴 Escalate immediately to Ministry Secretary. Convene a Project Review Committee (PRC) meeting within 7 days. Verify contractor liquidity and site progress. Issue formal Early Warning to IPMD MoSPI.'
+                    : '🟡 Schedule a formal review within 30 days. Monitor contractor performance and cash-flow. Request updated project completion timeline from executing agency.'}
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setReviewProject(null)}
+                  style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, color: theme.textMuted, borderRadius: 10, padding: '8px 18px', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => { handleExportAlertReport(); setReviewProject(null); }}
+                  style={{ background: `${reviewProject.category === 'Critical' ? RED : YELLOW}18`, border: `1px solid ${reviewProject.category === 'Critical' ? RED : YELLOW}40`, color: reviewProject.category === 'Critical' ? RED : YELLOW, borderRadius: 10, padding: '8px 18px', fontFamily: "'JetBrains Mono',monospace", fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Download size={12} /> Export Full Report
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </motion.div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
 import { useTheme } from '../ThemeContext';
@@ -7,7 +7,12 @@ import { useProjects } from '../ProjectContext';
 import StatusBadge from '../components/StatusBadge';
 import { AnimatedPage, FloatingCard, CountUp, StaggerContainer, StaggerItem } from '../components/AnimatedPage';
 import GlowButton from '../components/GlowButton';
-import { Lock, CheckCircle, Eye, RefreshCw, X } from 'lucide-react';
+import { 
+  Lock, CheckCircle, Eye, RefreshCw, X, ShieldAlert, Send, FileSpreadsheet, 
+  UploadCloud, AlertTriangle, Scale, Cpu, FileCheck, Zap, ArrowUpRight, DollarSign,
+  Building, Check, Download
+} from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 const fundItems = [
   {name:'NH-48 Road Widening',budget:42,used:28.5,progress:68},
@@ -20,7 +25,7 @@ const fundItems = [
 export default function AdminPage() {
   const { user } = useAuth();
   const { theme, isDark } = useTheme();
-  const { projects, updateProject } = useProjects();
+  const { projects, setProjects, updateProject } = useProjects();
   const [activeTab, setActiveTab] = useState('overview');
   const [toast, setToast] = useState('');
   const [viewProject, setViewProject] = useState(null);
@@ -28,6 +33,14 @@ export default function AdminPage() {
   const [editStatus, setEditStatus] = useState('');
   const [editProgress, setEditProgress] = useState(0);
   const [editSpent, setEditSpent] = useState('');
+  
+  // SIH Features State
+  const [noticeModal, setNoticeModal] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+  const [dispatchSuccess, setDispatchSuccess] = useState({});
+  const [escrowHoldState, setEscrowHoldState] = useState({});
+
   const [contractorScores, setContractorScores] = useState(() => {
     const saved = localStorage.getItem('civicsense_contractor_scores');
     if (saved) return JSON.parse(saved);
@@ -61,6 +74,98 @@ export default function AdminPage() {
     setEditProject(null);
   };
 
+  // Top Divergence / Anomaly Projects for AI Triage
+  const highRiskTriage = useMemo(() => {
+    return projects
+      .filter(p => (p.costOverrunCr > 500 || (p.delayMonths || 0) >= 12 || p.status === 'critical'))
+      .sort((a, b) => (b.costOverrunCr || 0) - (a.costOverrunCr || 0))
+      .slice(0, 4);
+  }, [projects]);
+
+  // Handle Official Show Cause Notice Generation (SIH Feature)
+  const generateShowCausePDF = (project) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(239, 68, 68);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GOVERNMENT OF INDIA · MoSPI / IPMD CENTRAL SURVEILLANCE', 14, 14);
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.text('FORMAL SHOW-CAUSE NOTICE & AUDIT DIRECTIVE', 14, 24);
+
+    doc.setTextColor(203, 213, 225);
+    doc.setFontSize(8.5);
+    doc.text(`Ref: MoSPI/EWS/SCN-${project.projectCode || project.id}/${new Date().getFullYear()}`, 14, 32);
+
+    doc.setDrawColor(239, 68, 68);
+    doc.setLineWidth(1.5);
+    doc.line(0, 40, pageWidth, 40);
+
+    let y = 52;
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`TO: EXECUTING AGENCY / CONTRACTOR: ${project.agency || project.contractor || 'Concerned Agency'}`, 14, y);
+    y += 7;
+    doc.text(`PROJECT CODE: ${project.projectCode || project.id} — ${project.title}`, 14, y);
+
+    y += 12;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.text('1. REASON FOR IMMEDIATE EXPLANATION & ESCALATION AUDIT:', 14, y);
+    y += 6;
+
+    const issuesList = [
+      `• Recorded Cumulative Cost Escalation: +Rs. ${Math.round(project.costOverrunCr || 0).toLocaleString('en-IN')} Crore`,
+      `• Critical Schedule Slippage: ${project.delayMonths || 0} Months beyond Approved Target Date`,
+      `• Current AI Integrity & Trust Score: ${project.trustScore || 20}/100 [Red Category]`,
+      `• Physical vs Financial Divergence Gap: ${project.divergenceGap || -4.5}%`,
+    ];
+
+    issuesList.forEach(item => {
+      doc.text(item, 18, y);
+      y += 6;
+    });
+
+    y += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.text('2. STATUTORY MANDATE & TIMELINE:', 14, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    const text = `Under PAIMANA Rule 14.B and Public Procurement Directives, you are required to file a formal Milestone Rectification Charter within 7 working days of receipt of this notice. Failure to respond will trigger an immediate freeze on tranche disbursements and invoke liquidated damages.`;
+    const split = doc.splitTextToSize(text, pageWidth - 28);
+    doc.text(split, 14, y);
+
+    y += 24;
+    doc.setFillColor(254, 242, 242);
+    doc.rect(14, y, pageWidth - 28, 20, 'F');
+    doc.setTextColor(185, 28, 28);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AUTOMATED AUDIT SEAL — PAIMANA EARLY WARNING SYSTEM', 18, y + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text(`Digital Verification Timestamp: ${new Date().toISOString()}`, 18, y + 14);
+
+    const filename = `MoSPI_ShowCause_${project.projectCode || project.id}.pdf`;
+    doc.save(filename);
+    showToast(`✓ Generated & Downloaded Show-Cause Notice for ${project.title}`);
+  };
+
+  // Mock File Upload Handler for MoSPI CUF / Excel
+  const handleDatasetUpload = (file) => {
+    if (!file) return;
+    showToast(`⚡ Ingesting "${file.name}"... Parsing CUF records.`);
+    setTimeout(() => {
+      showToast(`✓ Dataset verified! 1,775 projects synchronized with active telemetry.`);
+    }, 1200);
+  };
+
   if (!isAdmin) return (
     <AnimatedPage style={S.locked}>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} style={{ width: 80, height: 80, background: isDark ? 'rgba(15,22,41,0.6)' : 'rgba(99,102,241,0.07)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${isDark ? 'rgba(99,140,255,0.1)' : 'rgba(99,102,241,0.15)'}` }}>
@@ -85,15 +190,20 @@ export default function AdminPage() {
       
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={S.header}>
         <div>
-          <h1 style={S.h1}>Government Portal</h1>
-          <p style={S.sub}>Manage infrastructure projects, contractor scores & fund tracking</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <h1 style={S.h1}>Government Portal</h1>
+            <span style={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', color: '#fff', fontSize: '0.62rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: '0.05em', fontFamily: "'JetBrains Mono',monospace" }}>
+              SIH WINNING EWS
+            </span>
+          </div>
+          <p style={S.sub}>National Project Surveillance, AI Triage Intervention & CUF Ingestion Engine</p>
         </div>
-        <div style={S.adminBadge}>🏛 PMC Admin · Pune</div>
+        <div style={S.adminBadge}>🏛 MoSPI / IPMD National Admin Suite</div>
       </motion.div>
       
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', background: isDark ? 'rgba(15,22,41,0.4)' : '#f2f3f7', padding: 4, borderRadius: 12, border: `1px solid ${theme.border}` }}>
-        {[['overview','Overview'],['funds','Fund Tracking'],['projects','Manage Projects'],['contractors','Contractor Scores']].map(([id,label])=>(
+        {[['overview','Overview & AI Triage'],['funds','Fund Tracking'],['projects','Manage Projects'],['contractors','Contractor Integrity & Scores']].map(([id,label])=>(
           <button key={id} onClick={()=>setActiveTab(id)}
             style={{ padding: '8px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: activeTab===id ? 700 : 500, fontSize: '0.82rem', position: 'relative', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
               background: activeTab===id ? isDark ? 'rgba(59,130,246,0.15)' : 'white' : 'transparent',
@@ -108,15 +218,16 @@ export default function AdminPage() {
       <AnimatePresence mode="wait">
         <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
           {activeTab==='overview' && (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Row 1: KPI Top Cards */}
               <div style={S.kpiGrid}>
                 {[
-                  ['Total Projects', projects.length, '#3b82f6'],
-                  ['On Track', projects.filter(p => p.status === 'on-track').length, '#10b981'],
-                  ['Delayed', projects.filter(p => p.status === 'delayed').length, '#f59e0b'],
-                  ['Critical Risk', projects.filter(p => p.status === 'critical').length, '#f43f5e']
+                  ['Total Monitored Projects', projects.length, '#3b82f6'],
+                  ['On Track (Green)', projects.filter(p => p.status === 'on-track').length, '#10b981'],
+                  ['Watchlist (Amber)', projects.filter(p => p.status === 'delayed').length, '#f59e0b'],
+                  ['Critical Risk (Red)', projects.filter(p => p.status === 'critical').length, '#f43f5e']
                 ].map(([l,v,c],idx)=>(
-                  <motion.div key={l} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + idx * 0.1 }}>
+                  <motion.div key={l} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + idx * 0.08 }}>
                     <FloatingCard style={{...S.kpiCard,borderTop:`2px solid ${c}`}} glowColor={`${c}20`}>
                       <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'0.6rem',color:'#64748b'}}>{l}</span>
                       <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:800,fontSize:'2rem',color:c,textShadow:`0 0 20px ${c}30`}}>
@@ -125,6 +236,190 @@ export default function AdminPage() {
                     </FloatingCard>
                   </motion.div>
                 ))}
+              </div>
+
+              {/* Row 2: SIH Feature 1 - AI Early-Warning Triage & Intervention Dispatcher */}
+              <FloatingCard style={{ ...S.card, border: '1px solid rgba(244,63,94,0.25)', background: isDark ? 'linear-gradient(180deg, rgba(244,63,94,0.04) 0%, rgba(15,22,41,0.7) 100%)' : '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(244,63,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ShieldAlert size={18} color="#f43f5e" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, fontSize: '1rem', color: theme.textPrimary, margin: 0 }}>
+                        🚨 AI Early-Warning Triage & Rapid Intervention Dispatcher
+                      </h3>
+                      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.68rem', color: '#94a3b8' }}>
+                        Autonomous detection of critical timeline divergence & severe budget overruns
+                      </span>
+                    </div>
+                  </div>
+                  <span style={{ background: 'rgba(244,63,94,0.12)', color: '#f43f5e', border: '1px solid rgba(244,63,94,0.3)', padding: '3px 10px', borderRadius: 6, fontSize: '0.68rem', fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" }}>
+                    4 ACTION REQUIRED
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                  {highRiskTriage.map((p) => {
+                    const isDispatched = dispatchSuccess[p.projectCode || p.id];
+                    return (
+                      <div key={p.projectCode || p.id} style={{ padding: '12px 14px', borderRadius: 12, background: isDark ? 'rgba(15,23,42,0.6)' : 'rgba(241,245,249,0.7)', border: '1px solid rgba(99,140,255,0.12)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '0.65rem', color: '#f43f5e', fontWeight: 700 }}>
+                              {p.projectCode || `PAI-${p.id}`}
+                            </span>
+                            <span style={{ fontSize: '0.65rem', fontFamily: "'JetBrains Mono',monospace", color: '#fbbf24', background: 'rgba(245,158,11,0.1)', padding: '2px 6px', borderRadius: 4 }}>
+                              Delay: {p.delayMonths || 0} mo
+                            </span>
+                          </div>
+                          <h4 style={{ fontSize: '0.82rem', fontWeight: 700, color: theme.textPrimary, margin: '0 0 4px', lineHeight: 1.3 }}>
+                            {p.title.length > 50 ? p.title.slice(0, 48) + '...' : p.title}
+                          </h4>
+                          <span style={{ fontSize: '0.7rem', color: theme.textMuted, display: 'block', marginBottom: 8 }}>
+                            🏢 {p.agency || p.contractor}
+                          </span>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', background: isDark ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', borderRadius: 6, marginBottom: 10, fontSize: '0.68rem', fontFamily: "'JetBrains Mono',monospace" }}>
+                            <span style={{ color: '#94a3b8' }}>Overrun:</span>
+                            <span style={{ color: '#f43f5e', fontWeight: 700 }}>+₹{Math.round(p.costOverrunCr || 0).toLocaleString('en-IN')} Cr</span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={() => generateShowCausePDF(p)}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px 10px', borderRadius: 7, border: '1px solid rgba(244,63,94,0.3)', background: 'rgba(244,63,94,0.1)', color: '#f43f5e', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
+                          >
+                            <Download size={12} /> Notice PDF
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDispatchSuccess(prev => ({ ...prev, [p.projectCode || p.id]: true }));
+                              showToast(`⚡ Show-Cause Notice Dispatched to ${p.agency || 'Agency'}`);
+                            }}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px 10px', borderRadius: 7, border: 'none', background: isDispatched ? '#10b981' : 'linear-gradient(135deg, #3b82f6, #6366f1)', color: '#fff', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
+                          >
+                            {isDispatched ? <><Check size={12} /> Sent</> : <><Send size={12} /> Dispatch</>}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </FloatingCard>
+
+              {/* Row 3: SIH Feature 2 & 3 - Live Dataset Ingestion + Penalty Clawback Matrix */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                {/* Module A: MoSPI CUF Ingestion Engine */}
+                <FloatingCard style={S.card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.8rem' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(59,130,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FileSpreadsheet size={18} color="#3b82f6" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.92rem', color: theme.textPrimary, margin: 0 }}>
+                        MoSPI CUF / Excel Ingestion Engine
+                      </h3>
+                      <span style={{ fontSize: '0.65rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>
+                        Instant parsing of Common Upload Form datasets
+                      </span>
+                    </div>
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".csv,.xlsx,.json"
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleDatasetUpload(e.target.files[0])}
+                  />
+
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => { e.preventDefault(); setDragOver(false); handleDatasetUpload(e.dataTransfer.files[0]); }}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      border: `2px dashed ${dragOver ? '#3b82f6' : isDark ? 'rgba(99,140,255,0.2)' : 'rgba(0,0,0,0.15)'}`,
+                      background: dragOver ? 'rgba(59,130,246,0.08)' : isDark ? 'rgba(15,22,41,0.5)' : '#f8fafc',
+                      borderRadius: 12,
+                      padding: '24px 16px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      marginBottom: '1rem'
+                    }}
+                  >
+                    <UploadCloud size={32} color="#3b82f6" style={{ margin: '0 auto 8px', display: 'block' }} />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: theme.textPrimary, display: 'block' }}>
+                      Drop MoSPI Flash Report (CSV / Excel)
+                    </span>
+                    <span style={{ fontSize: '0.68rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>
+                      or click to browse local files (Automatic EWS Sync)
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.72rem', fontFamily: "'JetBrains Mono',monospace" }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.textMuted }}>
+                      <span>Active Engine:</span>
+                      <span style={{ color: '#10b981', fontWeight: 700 }}>PAIMANA Neural Model v3.1</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.textMuted }}>
+                      <span>CUF Validation Status:</span>
+                      <span style={{ color: '#60a5fa' }}>100% Schema Compliant</span>
+                    </div>
+                  </div>
+                </FloatingCard>
+
+                {/* Module B: Contractor Penalty & Escrow Clawback Protocol */}
+                <FloatingCard style={S.card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.8rem' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Scale size={18} color="#f59e0b" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: '0.92rem', color: theme.textPrimary, margin: 0 }}>
+                        Liquidated Damages & Escrow Hold Matrix
+                      </h3>
+                      <span style={{ fontSize: '0.65rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>
+                        Smart contract clawback recommendations for lagging tranches
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {[
+                      { agency: 'DFCCIL Corridor Unit', penalty: '₹142.5 Cr', reason: '45 mo delay & 142% budget escalation', id: 'c1' },
+                      { agency: 'NHSRCL High Speed Rail', penalty: '₹68.0 Cr', reason: '28 mo delay on civil subcontracts', id: 'c2' },
+                      { agency: 'Water Resources-AP (Polavaram)', penalty: '₹95.2 Cr', reason: '47 mo timeline slippage', id: 'c3' },
+                    ].map(item => {
+                      const isHeld = escrowHoldState[item.id];
+                      return (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', border: '1px solid rgba(99,140,255,0.08)' }}>
+                          <div>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: theme.textPrimary }}>{item.agency}</div>
+                            <div style={{ fontSize: '0.65rem', color: theme.textMuted, fontFamily: "'JetBrains Mono',monospace" }}>{item.reason}</div>
+                          </div>
+                          <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f43f5e', fontFamily: "'JetBrains Mono',monospace" }}>
+                              {item.penalty}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setEscrowHoldState(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+                                showToast(isHeld ? `Unfroze Escrow for ${item.agency}` : `🛡️ Tranche Escrow Freeze Initiated for ${item.agency}`);
+                              }}
+                              style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: isHeld ? '#10b981' : 'rgba(244,63,94,0.15)', color: isHeld ? '#fff' : '#f43f5e', fontSize: '0.62rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
+                            >
+                              {isHeld ? '✓ Frozen' : 'Freeze Tranche'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </FloatingCard>
               </div>
             </div>
           )}

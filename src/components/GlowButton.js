@@ -75,22 +75,22 @@ export default function GlowButton({
   // ─── Variant configs ───────────────────
   const variants = {
     primary: {
-      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%)',
+      background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%)',
       backgroundSize: '200% 200%',
       color: 'white',
       border: 'none',
       boxShadow: hover
-        ? '0 8px 32px rgba(99,102,241,0.42), 0 0 50px rgba(139,92,246,0.28), inset 0 1px 0 rgba(255,255,255,0.2)'
-        : '0 4px 16px rgba(99,102,241,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
+        ? '0 10px 30px rgba(29,78,216,0.45), 0 0 25px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.3)'
+        : '0 6px 20px rgba(29,78,216,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
     },
     secondary: {
-      background: 'var(--surface, rgba(255,255,255,0.8))',
+      background: 'var(--surface, rgba(255,255,255,0.95))',
       backdropFilter: 'blur(20px)',
-      color: 'var(--blue, #6366f1)',
-      border: '1px solid var(--border2, rgba(99,102,241,0.2))',
+      color: 'var(--blue, #1d4ed8)',
+      border: '1px solid var(--border2, rgba(29,78,216,0.15))',
       boxShadow: hover
-        ? '0 6px 24px rgba(99,102,241,0.14), 0 0 0 1px rgba(99,102,241,0.2)'
-        : '0 2px 10px rgba(0,0,0,0.06)',
+        ? '0 8px 24px rgba(29,78,216,0.15), 0 0 0 1px rgba(29,78,216,0.25)'
+        : '0 4px 12px rgba(18,48,125,0.06)',
     },
     glass: {
       background: 'var(--surface, rgba(255,255,255,0.7))',

@@ -266,10 +266,10 @@ export function FloatingCard({ children, style, className, glowColor = 'rgba(99,
       style={{
         background: 'var(--card-bg, #ffffff)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid var(--border, rgba(0,0,0,0.07))',
-        borderRadius: '16px',
-        boxShadow: 'var(--card-shadow, 0 2px 16px rgba(0,0,0,0.06))',
-        transition: 'background 0.3s ease, border-color 0.3s ease',
+        border: '1px solid var(--border, rgba(59,130,246,0.10))',
+        borderRadius: '20px',
+        boxShadow: 'var(--card-shadow, 0 10px 30px -5px rgba(59,130,246,0.08))',
+        transition: 'background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
         ...style,
       }}
       className={className}
